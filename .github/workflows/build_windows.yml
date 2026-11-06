@@ -32,7 +32,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: CMake 3.28 (the version Orca builds with)
-        run: pip install cmake==3.28.6
+        run: pip install cmake==3.28.4
 
       - name: Visual Studio build tools
         uses: microsoft/setup-msbuild@v2
