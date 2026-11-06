@@ -25,7 +25,7 @@ permissions:
 jobs:
   windows:
     name: Windows installer
-    runs-on: windows-2025
+    runs-on: windows-2022 # has Visual Studio 2022, which Orca 2.3.1's build scripts use
     timeout-minutes: 330
     steps:
       - name: Checkout
@@ -60,6 +60,7 @@ jobs:
         run: |
           choco install strawberryperl -y --no-progress
           .\build_release_vs2022.bat deps
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path deps\build\OrcaSlicer_dep\usr\local)) { throw "Building the libraries failed" }
 
       - name: Keep built libraries for next time
         if: steps.deps.outputs.cache-hit != 'true'
@@ -69,13 +70,16 @@ jobs:
           key: windows-deps-${{ hashFiles('deps/**') }}
 
       - name: Build UB Slicer
-        run: .\build_release_vs2022.bat slicer
+        run: |
+          .\build_release_vs2022.bat slicer
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path build\OrcaSlicer\ub-slicer.exe)) { throw "Building UB Slicer failed" }
 
       - name: Make the installer
         working-directory: build
         run: |
           choco install nsis -y --no-progress
           cpack -G NSIS
+          if ($LASTEXITCODE -ne 0) { throw "Making the installer failed" }
 
       - name: Make the portable zip
         shell: pwsh
