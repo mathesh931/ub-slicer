@@ -62,12 +62,13 @@ jobs:
           .\build_release_vs2022.bat deps
           if ($LASTEXITCODE -ne 0 -or -not (Test-Path deps\build\OrcaSlicer_dep\usr\local)) { throw "Building the libraries failed" }
 
+      # Saved under the key worked out before building (the deps folder is gigabytes afterwards, too big to fingerprint).
       - name: Keep built libraries for next time
         if: steps.deps.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: deps/build/OrcaSlicer_dep
-          key: windows-deps-${{ hashFiles('deps/**') }}
+          key: ${{ steps.deps.outputs.cache-primary-key }}
 
       - name: Build UB Slicer
         run: |
