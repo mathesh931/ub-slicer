@@ -13,10 +13,11 @@ every Orca feature (3D plate, all print settings, preview, supports painting, cu
 
 | | UB Slicer |
 |---|---|
-| Name and logo | UB Slicer, Unbound's swoosh (window, icons, splash, installer, About) |
-| Printers | **Unbound only**: Unbound Lynx 350 (0.4 mm nozzle), plus Orca's "Custom printer" option |
-| Print settings | 0.20mm Standard and 0.20mm Fast @Unbound Lynx 350 (tested on the Lynx 350) |
-| Filaments | Unbound PLA, PETG, ABS, TPU, plus Orca's generic filament library |
+| Name and logo | UB Slicer with the Unbound 3D Industries logo (window, icons, splash, installer, About) |
+| Look | Black and white (Orca's teal replaced everywhere, light and dark mode) |
+| Printers | **Unbound only**: Unbound3D Lynx 350 and Lynx 320 (0.4 mm hardened nozzle); the Lynx 350 is ticked on first start |
+| Print settings | 0.20mm Standard @Unbound3D and Unbound's tested settings per filament |
+| Filaments | Unbound's tested filaments (eSUN, Numakers, JamgHe, Fibreel …), plus Orca's generic filament library |
 | Updates | No OrcaSlicer update pop-ups and no online profile downloads: updates come as new UB Slicer installers |
 | Settings folder | `%APPDATA%\UBSlicer` on Windows (separate from OrcaSlicer, both can be installed) |
 
@@ -29,8 +30,9 @@ Repository → **Releases** → `UB_Slicer_Windows_Installer_V….exe`. Builds o
 
 | What | Where |
 |---|---|
-| Unbound printer, settings, filaments | `resources/profiles/Unbound/` (+ `Unbound.json`) |
+| Unbound printers, settings, filaments | `resources/profiles/Unbound3D/` (+ `Unbound3D.json`) |
 | Logos and icons | `resources/images/` (Orca's file names, Unbound artwork) |
+| Colours | Orca's teal swapped for black/greys in code and icons (`doc/UPDATING_FROM_ORCA.md`) |
 | Name, version | `version.inc` |
 | Installer | `CMakeLists.txt` (CPack section) |
 | Windows build on GitHub | `.github/workflows/build_windows.yml` |

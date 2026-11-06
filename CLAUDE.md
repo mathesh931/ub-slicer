@@ -9,8 +9,9 @@ Rules for this repository:
   every file UB Slicer changes; update it with each change).
 - Licence is AGPL-3.0: keep Orca's licence and credits ("Based on OrcaSlicer"); never put secrets or private Unbound
   code (UBconnect) in this repository. UBconnect lives in `unbound3d-industries/printhub` and stays separate.
-- Printers: **Unbound only** (`resources/profiles/Unbound`), plus Orca's `Custom` and `OrcaFilamentLibrary`, which the
-  app needs. New Unbound printers follow the structure of `resources/profiles/Unbound`.
+- Printers: **Unbound only** (`resources/profiles/Unbound3D`), plus Orca's `Custom` and `OrcaFilamentLibrary`, which the
+  app needs. New Unbound printers follow the structure of `resources/profiles/Unbound3D`.
+- Look: black and white (no Orca teal); never write "Orca" in anything people see except the About credit.
 - Windows first. Builds run on GitHub Actions (`.github/workflows/build_windows.yml`); nothing is built locally.
 - Use the name "UB Slicer" in anything people see; Orca's internal file and class names stay as they are.
 

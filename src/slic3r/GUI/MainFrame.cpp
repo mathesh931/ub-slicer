@@ -1842,7 +1842,7 @@ wxBoxSizer* MainFrame::create_side_tools()
 
     /*
     Button * aux_btn = new Button(this, _L("Auxiliary"));
-    aux_btn->SetBackgroundColour(0x3B4446);
+    aux_btn->SetBackgroundColour(0x2B2B2B);
     aux_btn->Bind(wxEVT_BUTTON, [](auto e) {
         wxGetApp().sidebar().show_auxiliary_dialog();
     });
@@ -1999,11 +1999,11 @@ void MainFrame::update_side_button_style()
     m_slice_btn->SetMinSize(wxSize(-1, FromDIP(24)));
     m_slice_btn->SetCornerRadius(FromDIP(12));
     m_slice_btn->SetExtraSize(wxSize(FromDIP(38), FromDIP(10)));
-    m_slice_btn->SetBottomColour(wxColour(0x3B4446));*/
+    m_slice_btn->SetBottomColour(wxColour(0x2B2B2B));*/
     StateColor m_btn_bg_enable = StateColor(
-        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(26, 26, 26), StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(48, 221, 112), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
+        std::pair<wxColour, int>(wxColour(51, 51, 51), StateColor::Normal)
     );
 
     // m_publish_btn->SetMinSize(wxSize(FromDIP(125), FromDIP(24)));
@@ -2216,7 +2216,7 @@ static wxMenu* generate_help_menu()
         });
 
     // Report a bug
-    //append_menu_item(helpMenu, wxID_ANY, _L("Report Bug(TODO)"), _L("Report a bug of OrcaSlicer"),
+    //append_menu_item(helpMenu, wxID_ANY, _L("Report Bug(TODO)"), _L("Report a bug of UB Slicer"),
     //    [](wxCommandEvent&) {
     //        //TODO
     //    });
@@ -2921,10 +2921,10 @@ void MainFrame::init_menubar_as_editor()
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(false, 2); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
     flowrate_menu->AppendSeparator();
-    append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO (Recommended)"), _L("Orca YOLO flowrate calibration, 0.01 step"),
+    append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO (Recommended)"), _L("YOLO flowrate calibration, 0.01 step"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(true, 1); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-    append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO (perfectionist version)"), _L("Orca YOLO flowrate calibration, 0.005 step"),
+    append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO (perfectionist version)"), _L("YOLO flowrate calibration, 0.005 step"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(true, 2); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
     m_topbar->GetCalibMenu()->AppendSubMenu(flowrate_menu, _L("Flow rate"));
@@ -3044,10 +3044,10 @@ void MainFrame::init_menubar_as_editor()
     append_submenu(calib_menu,flowrate_menu,wxID_ANY,_L("Flow rate"),_L("Flow rate"),"",
                    [this]() {return m_plater->is_view3D_shown();; });
     flowrate_menu->AppendSeparator();
-    append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO (Recommended)"), _L("Orca YOLO flowrate calibration, 0.01 step"),
+    append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO (Recommended)"), _L("YOLO flowrate calibration, 0.01 step"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(true, 1); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-    append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO (perfectionist version)"), _L("Orca YOLO flowrate calibration, 0.005 step"),
+    append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO (perfectionist version)"), _L("YOLO flowrate calibration, 0.005 step"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(true, 2); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
 
