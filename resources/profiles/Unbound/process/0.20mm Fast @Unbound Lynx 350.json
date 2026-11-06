@@ -1,0 +1,20 @@
+{
+    "type": "process",
+    "name": "0.20mm Fast @Unbound Lynx 350",
+    "inherits": "fdm_process_unbound_common",
+    "from": "system",
+    "setting_id": "UBP002",
+    "instantiation": "true",
+    "default_acceleration": "3000",
+    "inner_wall_speed": "200",
+    "internal_solid_infill_speed": "250",
+    "outer_wall_acceleration": "3000",
+    "outer_wall_speed": "150",
+    "sparse_infill_speed": "250",
+    "support_speed": "100",
+    "support_top_z_distance": "0.23",
+    "travel_speed": "500",
+    "compatible_printers": [
+        "Unbound Lynx 350 0.4 nozzle"
+    ]
+}

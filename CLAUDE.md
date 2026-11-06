@@ -1,3 +1,23 @@
+# CLAUDE.md: UB Slicer
+
+**UB Slicer** is Unbound3D's slicer: OrcaSlicer 2.3.1 with Unbound's name, logo and printers. The owner is
+**Mathesh** (Unbound3D, GitHub `mathesh931`), first time building software: explain in plain words with 3D-printer
+examples, confirm each step before building it, explain GitHub actions (branch, commit, push, pull request, merge).
+
+Rules for this repository:
+- Keep changes **small and few**, so newer OrcaSlicer versions can be merged in (`doc/UPDATING_FROM_ORCA.md` lists
+  every file UB Slicer changes; update it with each change).
+- Licence is AGPL-3.0: keep Orca's licence and credits ("Based on OrcaSlicer"); never put secrets or private Unbound
+  code (UBconnect) in this repository. UBconnect lives in `unbound3d-industries/printhub` and stays separate.
+- Printers: **Unbound only** (`resources/profiles/Unbound`), plus Orca's `Custom` and `OrcaFilamentLibrary`, which the
+  app needs. New Unbound printers follow the structure of `resources/profiles/Unbound`.
+- Windows first. Builds run on GitHub Actions (`.github/workflows/build_windows.yml`); nothing is built locally.
+- Use the name "UB Slicer" in anything people see; Orca's internal file and class names stay as they are.
+
+---
+
+The rest is OrcaSlicer's own guide to its code, still accurate for UB Slicer.
+
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.

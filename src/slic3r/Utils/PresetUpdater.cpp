@@ -645,6 +645,7 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
 // Orca: sync config update for currect App version
 void PresetUpdater::priv::sync_config()
 {
+    return; // UB Slicer: printer profiles come with the UB Slicer installer, not from Orca's online profile store
     auto cache_profile_path        = cache_path;
     auto cache_profile_update_file = cache_path / "profiles_update.json";
     std::string asset_name;

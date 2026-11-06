@@ -270,6 +270,7 @@ AboutDialog::AboutDialog()
     text_sizer_horiz->Add( 0, 0, 0, wxLEFT, FromDIP(20));
 
     std::vector<wxString> text_list;
+    text_list.push_back(_L("UB Slicer is Unbound3D's slicer for Unbound printers, based on OrcaSlicer (AGPL-3.0)."));
     text_list.push_back(_L("OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."));
     text_list.push_back(_L("BambuStudio is originally based on PrusaSlicer by PrusaResearch."));
     text_list.push_back(_L("PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci."));
@@ -315,7 +316,7 @@ AboutDialog::AboutDialog()
 
     copyright_hor_sizer->Add(copyright_ver_sizer, 0, wxLEFT, FromDIP(20));
 
-    wxStaticText *html_text = new wxStaticText(this, wxID_ANY, "Copyright(C) 2022-2025 Li Jiang All Rights Reserved", wxDefaultPosition, wxDefaultSize);
+    wxStaticText *html_text = new wxStaticText(this, wxID_ANY, "UB Slicer by Unbound3D. Based on OrcaSlicer, Copyright(C) 2022-2025 Li Jiang. AGPL-3.0", wxDefaultPosition, wxDefaultSize);
     html_text->SetForegroundColour(wxColour(107, 107, 107));
 
     copyright_ver_sizer->Add(html_text, 0, wxALL , 0);
@@ -332,7 +333,7 @@ AboutDialog::AboutDialog()
               (boost::format(
               "<html>"
               "<body>"
-              "<p style=\"text-align:left\"><a style=\"color:#009789\" href=\"https://github.com/SoftFever/Orcaslicer\">https://github.com/SoftFever/Orcaslicer</ a></p>"
+              "<p style=\"text-align:left\"><a style=\"color:#0f766e\" href=\"https://ubconnect.live\">https://ubconnect.live</a> &middot; <a style=\"color:#0f766e\" href=\"https://github.com/OrcaSlicer/OrcaSlicer\">OrcaSlicer</a></p>"
               "</body>"
               "</html>")
             ).str());
