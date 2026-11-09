@@ -1,6 +1,6 @@
 {
     "name": "Custom Printer",
-    "version": "02.03.01.10",
+    "version": "02.03.01.20",
     "force_update": "0",
     "description": "Kept empty on purpose: UB Slicer shows Unbound printers only",
     "machine_model_list": [],

@@ -1098,6 +1098,10 @@ void PresetUpdater::priv::check_installed_vendor_profiles() const
     BOOST_LOG_TRIVIAL(info) << "[Orca Updater]:Checking whether the profile from resource is newer";
 
     AppConfig *app_config = GUI::wxGetApp().app_config;
+    // UB Slicer: the Unbound3D printers are always installed, with the Lynx 350 switched on
+    // (also for settings folders made by an earlier version).
+    if (app_config->vendors().find("Unbound3D") == app_config->vendors().end())
+        app_config->set_variant("Unbound3D", "Unbound3D Lynx 350", "0.4", true);
     const auto enabled_vendors = app_config->vendors();
 
     std::set<std::string> bundles;

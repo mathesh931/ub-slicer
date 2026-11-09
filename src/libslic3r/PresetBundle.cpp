@@ -1680,6 +1680,9 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     const Preset *initial_printer = printers.find_preset(initial_printer_profile_name);
     // If executed due to a Config Wizard update, preferred_printer contains the first newly installed printer, otherwise nullptr.
     const Preset *preferred_printer = printers.find_system_preset_by_model_and_variant(preferred_selection.printer_model_id, preferred_selection.printer_variant);
+    // UB Slicer: if the saved printer no longer exists (e.g. the removed generic "MyKlipper"), use the Unbound3D Lynx 350
+    if (preferred_printer == nullptr && (initial_printer == nullptr || !initial_printer->is_visible))
+        preferred_printer = printers.find_system_preset_by_model_and_variant(ORCA_DEFAULT_PRINTER_MODEL, ORCA_DEFAULT_PRINTER_VARIANT);
     printers.select_preset_by_name(preferred_printer ? preferred_printer->name : initial_printer_profile_name, true);
     CNumericLocalesSetter locales_setter;
 

@@ -39,3 +39,6 @@ UB Slicer started as an exact copy of OrcaSlicer **v2.3.1** (commit `f2d10a0`), 
 | Wording: translatable texts in `src/`, `localization/i18n/*.po`, `resources/data/hints.ini` | "Orca Slicer"/"OrcaSlicer"/"Orca" → "UB Slicer" (file names, links and log lines unchanged); calibration models "Calibration Cube", "Tolerance Test", "String Hell" |
 | `resources/web/orca/missing_connection.html` | Device tab: written connection steps instead of Orca's recorded animation (`setup_connection.gif` removed) |
 | Teal/blue PNG icons (`resources/images/{delete,import_file,new_folder,bullet_blue,humidity_list_background}.png`, `resources/web/{guide,homepage,login,model}/…`) | greyed; Orca logo `resources/web/image/logo2.png` removed |
+| `src/slic3r/Utils/PresetUpdater.cpp` (`check_installed_vendor_profiles`) | Unbound3D always installed with the Lynx 350 switched on, also for older settings folders |
+| `src/libslic3r/PresetBundle.cpp` (`load_selections`) | a saved printer that no longer exists falls back to the Unbound3D Lynx 350 |
+| `resources/profiles/Custom.json` | version raised to 02.03.01.20 so old copies (with MyKlipper) in users' settings folders are replaced |
