@@ -45,9 +45,9 @@ static std::vector<std::string> s_project_options {
 
 //Orca: add custom as default
 const char *PresetBundle::ORCA_DEFAULT_BUNDLE = "Custom";
-const char *PresetBundle::ORCA_DEFAULT_PRINTER_MODEL = "MyKlipper 0.4 nozzle";
+const char *PresetBundle::ORCA_DEFAULT_PRINTER_MODEL = "Unbound3D Lynx 350"; // UB Slicer: fallback printer
 const char *PresetBundle::ORCA_DEFAULT_PRINTER_VARIANT = "0.4";
-const char *PresetBundle::ORCA_DEFAULT_FILAMENT = "Generic PLA @System";
+const char *PresetBundle::ORCA_DEFAULT_FILAMENT = "eSUN PLA+ @Unbound3D"; // UB Slicer
 const char *PresetBundle::ORCA_FILAMENT_LIBRARY = "OrcaFilamentLibrary";
 
 PresetBundle::PresetBundle()
