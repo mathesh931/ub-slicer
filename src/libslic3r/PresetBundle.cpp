@@ -185,9 +185,9 @@ static std::vector<std::string> s_project_options_published{"wipe_tower_x", "wip
 
 //Orca: add custom as default
 const char *PresetBundle::ORCA_DEFAULT_BUNDLE = "Custom";
-const char *PresetBundle::ORCA_DEFAULT_PRINTER_MODEL = "MyKlipper 0.4 nozzle";
+const char *PresetBundle::ORCA_DEFAULT_PRINTER_MODEL = "Unbound3D Lynx 350"; // UB Slicer: fallback printer
 const char *PresetBundle::ORCA_DEFAULT_PRINTER_VARIANT = "0.4";
-const char *PresetBundle::ORCA_DEFAULT_FILAMENT = "Generic PLA @System";
+const char *PresetBundle::ORCA_DEFAULT_FILAMENT = "eSUN PLA+ @Unbound3D"; // UB Slicer
 const char *PresetBundle::ORCA_FILAMENT_LIBRARY = "OrcaFilamentLibrary";
 const char *PresetBundle::ORCA_DEFAULT_FILAMENT_PLACEHOLDER = "Default Filament";
 
@@ -3943,7 +3943,7 @@ void PresetBundle::update_selections(AppConfig &config)
     if (!f_colors.empty()) {
         boost::algorithm::split(filament_colors, f_colors, boost::algorithm::is_any_of(","));
     }
-    filament_colors.resize(filament_presets.size(), "#26A69A");
+    filament_colors.resize(filament_presets.size(), "#4A4A4A");
     project_config.option<ConfigOptionStrings>("filament_colour")->values = filament_colors;
 
     std::vector<std::string> multi_filament_colors;
@@ -4042,6 +4042,9 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     const Preset *initial_printer = printers.find_preset(initial_printer_profile_name);
     // If executed due to a Config Wizard update, preferred_printer contains the first newly installed printer, otherwise nullptr.
     const Preset *preferred_printer = printers.find_system_preset_by_model_and_variant(preferred_selection.printer_model_id, preferred_selection.printer_variant);
+    // UB Slicer: if the saved printer no longer exists (e.g. a removed generic printer), use the Unbound3D Lynx 350
+    if (preferred_printer == nullptr && (initial_printer == nullptr || !initial_printer->is_visible))
+        preferred_printer = printers.find_system_preset_by_model_and_variant(ORCA_DEFAULT_PRINTER_MODEL, ORCA_DEFAULT_PRINTER_VARIANT);
     printers.select_preset_by_name(preferred_printer ? preferred_printer->name : initial_printer_profile_name, true);
     Preset &selected_printer = printers.get_edited_preset();
     if (selected_printer.printer_technology() == ptFFF) {
@@ -4106,7 +4109,7 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     if (!f_colors.empty()) {
         boost::algorithm::split(filament_colors, f_colors, boost::algorithm::is_any_of(","));
     }
-    filament_colors.resize(filament_presets.size(), "#26A69A");
+    filament_colors.resize(filament_presets.size(), "#4A4A4A");
     project_config.option<ConfigOptionStrings>("filament_colour")->values = filament_colors;
 
     std::vector<std::string> multi_filament_colors;

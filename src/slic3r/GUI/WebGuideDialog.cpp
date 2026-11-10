@@ -95,8 +95,8 @@ static json guide_strings()
         {"loading", _u8L("Loading…")},
         // TRN Sidebar entry of the printer selection page for the group of custom (user-defined) printers.
         {"custom_vendor", _u8L_CONTEXT("Custom", "Printer vendor")},
-        {"welcome", _u8L("Welcome to Orca Slicer")},
-        {"setup_intro", _u8L("Orca Slicer will be set up in several steps. Let's start!")},
+        {"welcome", _u8L("Welcome to UB Slicer")},
+        {"setup_intro", _u8L("UB Slicer will be set up in several steps. Let's start!")},
         {"get_started", _u8L("Get Started")},
         {"login_region", _u8L("Please select your login region")},
         {"asia_pacific", _u8L("Asia-Pacific")},
@@ -144,12 +144,12 @@ static json guide_strings()
         {"filament_required", _u8L("At least one filament must be selected.")},
         {"use_default_filament", _u8L("Do you want to use the default filament?")},
         {"stealth_mode", _u8L("Stealth Mode")},
-        {"stealth_mode_desc", _u8L("This disables all cloud features, including Orca Cloud profile syncing. Users who prefer to work entirely offline can enable this option.")},
-        {"stealth_mode_note", _u8L("Note: When Stealth Mode is enabled, your user profiles will not be backed up to Orca Cloud.")},
+        {"stealth_mode_desc", _u8L("This disables all cloud features, including UB Slicer Cloud profile syncing. Users who prefer to work entirely offline can enable this option.")},
+        {"stealth_mode_note", _u8L("Note: When Stealth Mode is enabled, your user profiles will not be backed up to UB Slicer Cloud.")},
         {"enable_stealth_mode", _u8L("Enable Stealth Mode.")},
         {"proprietary_plugins", _u8L("Proprietary Plugins")},
         {"proprietary_plugins_desc", _u8L("Some printer vendors require proprietary plugins for communication with their printers. Please select the corresponding plugin if you use such printers.")},
-        {"proprietary_plugins_risk", _u8L("Please be aware that these plugins are not developed or maintained by OrcaSlicer. They should be used at your own discretion and risk.")},
+        {"proprietary_plugins_risk", _u8L("Please be aware that these plugins are not developed or maintained by UB Slicer. They should be used at your own discretion and risk.")},
         {"install_bambu_plugin", _u8L("Install Bambu Network plug-in")},
     };
 }
@@ -220,7 +220,7 @@ static wxString update_custom_filaments()
 }
 
 GuideFrame::GuideFrame(GUI_App *pGUI, long style)
-    : DPIDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "OrcaSlicer", wxDefaultPosition, wxDefaultSize, style),
+    : DPIDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, SLIC3R_APP_NAME, wxDefaultPosition, wxDefaultSize, style),
 	m_appconfig_new()
 {
     SetBackgroundColour(*wxWHITE);
@@ -1111,7 +1111,8 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
             variant.clear();
         return std::string();
     };
-    // Orca "custom" printers are considered first, then 3rd party.
+    // UB Slicer: Unbound3D printers first, then Orca "custom" printers, then others.
+    if (preferred_model = get_preferred_printer_model("Unbound3D", preferred_variant); preferred_model.empty())
     if (preferred_model = get_preferred_printer_model(PresetBundle::ORCA_DEFAULT_BUNDLE, preferred_variant);
         preferred_model.empty()) {
         for (const auto& bundle : enabled_vendors) {

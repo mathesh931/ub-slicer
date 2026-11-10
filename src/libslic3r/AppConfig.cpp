@@ -479,7 +479,7 @@ void AppConfig::set_defaults()
 
     // Orca
     if (get("stealth_mode").empty()) {
-        set_bool("stealth_mode", false);
+        set_bool("stealth_mode", true); // UB Slicer: no Orca/Bambu cloud by default
     }
     if (get("hide_login_side_panel").empty()) {
         set_bool("hide_login_side_panel", false);
@@ -1955,10 +1955,7 @@ std::string AppConfig::version_check_url() const
 
 std::string AppConfig::profile_update_url() const
 {
-    std::string orca_updater_url = get(CONFIG_ORCA_UPDATER_URL);
-    if (orca_updater_url.empty())
-        return PROFILE_UPDATE_URL;
-    return orca_updater_url;
+    return std::string(); // UB Slicer: printer profiles come with the UB Slicer installer, not from Orca's online profile store
 }
 
 bool AppConfig::exists()

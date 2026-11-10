@@ -1,0 +1,34 @@
+{
+	"type": "filament",
+	"name": "flex3d PLA+ @Unbound3D",
+	"inherits": "eSUN PLA+ @System",
+	"from": "system",
+	"setting_id": "RGUBgJMnhaT5Xkx7",
+	"filament_id": "OFMEgQtU",
+	"instantiation": "true",
+	"filament_type": [
+		"PLA"
+	],
+	"compatible_printers": [
+		"Unbound3D Lynx 320 0.4 nozzle",
+		"Unbound3D Lynx 350 0.4 nozzle"
+	],
+	"filament_max_volumetric_speed": [
+		"8"
+	],
+	"filament_settings_id": [
+		"flex3d PLA+ @Unbound3D"
+	],
+	"nozzle_temperature": [
+		"190"
+	],
+	"nozzle_temperature_initial_layer": [
+		"190"
+	],
+	"textured_plate_temp": [
+		"60"
+	],
+	"textured_plate_temp_initial_layer": [
+		"60"
+	]
+}

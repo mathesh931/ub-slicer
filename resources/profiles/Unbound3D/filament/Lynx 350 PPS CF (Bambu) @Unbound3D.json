@@ -1,0 +1,163 @@
+{
+	"type": "filament",
+	"name": "Lynx 350 PPS CF (Bambu) @Unbound3D",
+	"inherits": "Bambu PPA-CF @System",
+	"from": "system",
+	"setting_id": "8v0Cjirof1y85LNu",
+	"filament_id": "OF0Sotyt",
+	"instantiation": "true",
+	"chamber_temperature": [
+		"60"
+	],
+	"enable_overhang_bridge_fan": [
+		"0"
+	],
+	"fan_max_speed": [
+		"10",
+		"10",
+		"10",
+		"10",
+		"10",
+		"10"
+	],
+	"fan_min_speed": [
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0"
+	],
+	"filament_density": [
+		"1.26"
+	],
+	"filament_deretraction_speed": [
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0"
+	],
+	"filament_max_volumetric_speed": [
+		"6",
+		"6",
+		"6",
+		"6",
+		"6",
+		"6"
+	],
+	"filament_retract_before_wipe": [
+		"100%",
+		"100%",
+		"100%",
+		"100%",
+		"100%",
+		"100%"
+	],
+	"filament_retract_when_changing_layer": [
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0"
+	],
+	"filament_retraction_length": [
+		"0.8",
+		"0.8",
+		"0.8",
+		"0.8",
+		"0.8",
+		"0.8"
+	],
+	"filament_retraction_speed": [
+		"30",
+		"30",
+		"30",
+		"30",
+		"30",
+		"30"
+	],
+	"filament_start_gcode": [
+		""
+	],
+	"filament_type": [
+		"PPS CF"
+	],
+	"filament_wipe": [
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0"
+	],
+	"filament_z_hop_types": [
+		"Spiral Lift",
+		"Spiral Lift",
+		"Spiral Lift",
+		"Spiral Lift",
+		"Spiral Lift",
+		"Spiral Lift"
+	],
+	"hot_plate_temp": [
+		"115"
+	],
+	"hot_plate_temp_initial_layer": [
+		"120"
+	],
+	"nozzle_temperature": [
+		"330",
+		"330",
+		"330",
+		"330",
+		"330",
+		"330"
+	],
+	"nozzle_temperature_initial_layer": [
+		"330",
+		"330",
+		"330",
+		"330",
+		"330",
+		"330"
+	],
+	"nozzle_temperature_range_high": [
+		"340",
+		"340",
+		"340",
+		"340",
+		"340",
+		"340"
+	],
+	"nozzle_temperature_range_low": [
+		"310",
+		"310",
+		"310",
+		"310",
+		"310",
+		"310"
+	],
+	"overhang_fan_speed": [
+		"10"
+	],
+	"overhang_fan_threshold": [
+		"25%"
+	],
+	"temperature_vitrification": [
+		"220"
+	],
+	"textured_plate_temp": [
+		"115"
+	],
+	"textured_plate_temp_initial_layer": [
+		"120"
+	],
+	"filament_settings_id": [
+		"Lynx 350 PPS CF (Bambu) @Unbound3D"
+	],
+	"compatible_printers": [
+		"Unbound3D Lynx 350 0.4 nozzle"
+	]
+}

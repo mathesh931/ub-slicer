@@ -6,17 +6,37 @@
 <title>Printer Connection Required</title>
 <link rel="stylesheet" type="text/css" href="css/home.css" />
 <link rel="stylesheet" type="text/css" href="css/dark.css" />
-<script type="text/javascript" src="../include/i18n.js"></script>	
+<script type="text/javascript" src="../include/i18n.js"></script>
 <script type="text/javascript" src="../include/jquery-3.6.0.min.js"></script>
 <script type="text/javascript" src="../homepage/js/json2.js"></script>
 <script type="text/javascript" src="../homepage/js/globalapi.js"></script>
 <script type="text/javascript" src="../homepage/js/home.js"></script>
+<!-- UB Slicer: written steps instead of Orca's recorded animation -->
+<style>
+  .container { text-align: left; max-width: 560px; }
+  h1 { margin: 0 0 6px; font-size: 22px; }
+  .lead { margin: 0 0 18px; opacity: .8; }
+  ol { margin: 0; padding-left: 0; list-style: none; counter-reset: step; }
+  li { counter-increment: step; display: flex; gap: 12px; margin: 0 0 14px; line-height: 1.45; }
+  li::before { content: counter(step); flex: none; width: 26px; height: 26px; border-radius: 50%; background: #333333; color: #fff;
+               font-weight: bold; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  .icon { width: 18px; height: 18px; vertical-align: -4px; }
+  code { background: rgba(127,127,127,.18); padding: 1px 6px; border-radius: 4px; }
+  .note { margin: 6px 0 0; font-size: 13px; opacity: .75; }
+</style>
 </head>
 <body onLoad="OnInit()">
     <div class="container">
         <h1 data-i18n="printer_connection">Printer Connection</h1>
-        <p data-i18n="printer_connection_setup">Please set up your printer connection to view the device.</p>
-        <img src="setup_connection.gif" alt="Printer connection setup demonstration" style="max-width: 100%; height: auto; display: block;"/>
+        <p class="lead">Connect UB Slicer to your Unbound printer to see it here and send prints straight to it.</p>
+        <ol>
+            <li><span>On the <b>Prepare</b> tab, click the connection icon <img class="icon" src="../../images/monitor_signal_strong.svg" alt=""> next to your printer's name.</span></li>
+            <li><span><b>Host Type:</b> choose <code>Octo/Klipper</code>.</span></li>
+            <li><span><b>Hostname, IP or URL:</b> type your printer's address, for example <code>192.168.1.50</code> (shown on the printer's screen).</span></li>
+            <li><span><b>API Key / Password:</b> leave it empty on your own network.</span></li>
+            <li><span>Click <b>Test</b>, then <b>OK</b>. Your printer appears on this tab.</span></li>
+        </ol>
+        <p class="note">Printing through UBconnect from anywhere? Use the address and key shown in UBconnect instead.</p>
     </div>
 </body>
 </html>
