@@ -615,14 +615,17 @@ std::vector<NativeCommand> build_command_catalog()
         }
         return AppActionRunResult{AppActionRunResult::Level::Success};
     });
+#if 0 // UB Slicer: no Orca update check
     add_with_icon("help_check_updates", L("Check for Updates"), L("Help"), "refresh", [](const std::string&) {
         wxGetApp().check_new_version_sf(true, 1);
         return AppActionRunResult{AppActionRunResult::Level::Success};
     });
+#endif
     add_with_icon("help_about", L("About UB Slicer"), L("Help"), "OrcaSlicer_gradient_circle", [](const std::string&) {
         Slic3r::GUI::about();
         return AppActionRunResult{AppActionRunResult::Level::Success};
     });
+#if 0 // UB Slicer: no Orca wiki, YouTube or plugin store
     add_with_icon("open_wiki", L("Open Wiki"), L("Help"), "link_wiki_img", [](const std::string&) {
         wxLaunchDefaultBrowser("https://www.orcaslicer.com/wiki/", wxBROWSER_NEW_WINDOW);
         return AppActionRunResult{AppActionRunResult::Level::Success};
@@ -650,6 +653,7 @@ std::vector<NativeCommand> build_command_catalog()
         return AppActionRunResult{AppActionRunResult::Level::Success};
     });
 
+#endif
     return out;
 }
 

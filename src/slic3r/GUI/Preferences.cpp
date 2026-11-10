@@ -313,8 +313,7 @@ wxBoxSizer *PreferencesDialog::create_item_label(wxString label, wxString toolti
     sizer->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
 
     wxString url;
-    if(!wiki_url.IsEmpty())
-        url = "https://www.orcaslicer.com/wiki/" + wiki_url;
+    // UB Slicer: no Orca online help links
 
     auto label_ctrl = new WikiLabel(m_parent, label, url, wxDefaultPosition, DESIGN_TITLE_SIZE);
 
@@ -1851,6 +1850,7 @@ void PreferencesDialog::create_items()
     g_sizer->Add(item_pop_up_filament_map_dialog);
 #endif
 
+#if 0 // UB Slicer: no Orca plugin store
     //// GENERAL > Plugins
     g_sizer->Add(create_item_title(_L("Plugins")), 1, wxEXPAND);
 
@@ -1866,6 +1866,7 @@ void PreferencesDialog::create_items()
     );
     g_sizer->Add(item_plugin_pages_visible_count);
 
+#endif
     g_sizer->AddSpacer(FromDIP(10));
     sizer_page->Add(g_sizer, 0, wxEXPAND);
 
@@ -2212,6 +2213,7 @@ void PreferencesDialog::create_items()
     //// ONLINE > Connection
     g_sizer->Add(create_item_title(_L("Connection")), 1, wxEXPAND);
 
+#if 0 // UB Slicer: no cloud login settings
     auto item_region           = create_item_region_combobox(_L("Login region"), "");
     g_sizer->Add(item_region);
  
@@ -2221,12 +2223,14 @@ void PreferencesDialog::create_items()
     auto item_hide_login_side_panel = create_item_checkbox(_L("Hide login side panel"), _L("Hide the login side panel on the home page."), "hide_login_side_panel");
     g_sizer->Add(item_hide_login_side_panel);
 
+#endif
     auto item_network_test     = create_item_button(_L("Network test"), _L("Test") + " " + dots, "", _L("Open Network Test"), []() {
         NetworkTestDialog dlg(wxGetApp().mainframe);
         dlg.ShowModal();
     });
     g_sizer->Add(item_network_test);
 
+#if 0 // UB Slicer: no cloud, sync or Bambu plug-in settings
     //// ONLINE > Cloud Providers
     g_sizer->Add(create_item_title(_L("Cloud Providers")), 1, wxEXPAND);
 
@@ -2271,6 +2275,7 @@ void PreferencesDialog::create_items()
     auto item_plugin_version = create_item_network_plugin_version(_L("Network plug-in version"), _L("Select the network plug-in version to use"));
     g_sizer->Add(item_plugin_version);
 
+#endif
     g_sizer->AddSpacer(FromDIP(10));
     sizer_page->Add(g_sizer, 0, wxEXPAND);
 

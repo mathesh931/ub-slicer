@@ -50,3 +50,9 @@ UB Slicer 2.5 starts from an exact copy of OrcaSlicer **v2.5.0** (commit `40ecc6
 | `src/slic3r/GUI/MainFrame.cpp` (`#if 0 // UB Slicer`) | no "Sync Presets" (OrcaCloud), no "Plugins" (Orca plugin store), no "Check for Updates" |
 | `src/slic3r/GUI/GUI_App.cpp` ("Profile syncing change") | no Orca Cloud profile-sync notice at start |
 | `resources/web/homepage/index.html` | no OrcaCloud and Wiki buttons on Home |
+| `OptionsGroup.cpp`, `OG_CustomCtrl.cpp`, `Preferences.cpp` (`get_url`/wiki link) | no Orca wiki link behind settings |
+| Wiki/video buttons hidden (`->Hide(); // UB Slicer`) in `UnsavedChangesDialog`, `StepMeshDialog`, `AMSMaterialsSetting`, `calib_dlg`, `PublishSettingsDialog`, `TroubleshootDialog`, `FilamentGroupPopup`, `GLGizmoTextureDisplacement`; `MainFrame.cpp` Calibration Guide menu removed | no Orca help pages or YouTube |
+| `src/slic3r/GUI/NativeCommands.cpp` (`#if 0 // UB Slicer`) | command palette: no Check for Updates, Wiki, YouTube, Plugins |
+| `StatusPanel`, `SelectMachine`, `SelectMachinePop`, `CameraPopup`, `Widgets/SideTools` | help links go to `https://ubconnect.live` instead of Orca's wiki |
+| `resources/data/hints.ini` | Orca `documentation_link` lines removed |
+| `src/slic3r/GUI/Preferences.cpp` (`#if 0 // UB Slicer`) | Preferences: no Plugins section, no login region / stealth / login panel, no Cloud Providers, Update & sync or Bambu network plug-in |
