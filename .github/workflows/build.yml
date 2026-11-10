@@ -105,12 +105,14 @@ jobs:
           path: build/UB_Slicer_Windows_*_portable.zip
 
   mac:
-    name: Mac app (Apple chip) ${{ matrix.os }}
+    name: Mac app ${{ matrix.label }}
     if: ${{ !github.event.repository.private }}
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-15, macos-14, macos-26]
+        include:
+          - { os: macos-15, arch: arm64, label: AppleChip }
+          - { os: macos-15-intel, arch: x86_64, label: Intel }
     runs-on: ${{ matrix.os }}
     timeout-minutes: 330
     steps:
@@ -121,36 +123,36 @@ jobs:
           brew install automake texinfo libtool pkgconf yasm nasm ninja
           pip3 install --break-system-packages "cmake~=4.3.0" || pip3 install "cmake~=4.3.0"
           echo "ver=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)" >> "$GITHUB_ENV"
-          mkdir -p deps/build/arm64
+          mkdir -p deps/build/${{ matrix.arch }}
 
       - name: Restore built libraries
         id: deps
         uses: actions/cache/restore@v4
         with:
-          path: deps/build/arm64/OrcaSlicer_dep
-          key: ${{ matrix.os }}-arm64-deps-${{ hashFiles('deps/**') }}
+          path: deps/build/${{ matrix.arch }}/OrcaSlicer_dep
+          key: macos-${{ matrix.arch }}-deps-${{ hashFiles('deps/**') }}
 
       - name: Build libraries (first time only)
         if: steps.deps.outputs.cache-hit != 'true'
         run: |
-          ./build_release_macos.sh -dx -j 3 -a arm64 -t 11.0
-          (cd deps/build/arm64 && find . -mindepth 1 -maxdepth 1 ! -name 'OrcaSlicer_dep' -exec rm -rf {} +)
-          test -d deps/build/arm64/OrcaSlicer_dep
+          ./build_release_macos.sh -dx -j 3 -a ${{ matrix.arch }} -t 11.0
+          (cd deps/build/${{ matrix.arch }} && find . -mindepth 1 -maxdepth 1 ! -name 'OrcaSlicer_dep' -exec rm -rf {} +)
+          test -d deps/build/${{ matrix.arch }}/OrcaSlicer_dep
 
       - name: Keep built libraries for next time
         if: steps.deps.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
-          path: deps/build/arm64/OrcaSlicer_dep
+          path: deps/build/${{ matrix.arch }}/OrcaSlicer_dep
           key: ${{ steps.deps.outputs.cache-primary-key }}
 
       - name: Build UB Slicer
         run: |
-          ./build_release_macos.sh -s -n -x -j 3 -a arm64 -t 11.0
-          test -d build/arm64/OrcaSlicer/OrcaSlicer.app
+          ./build_release_macos.sh -s -n -x -j 3 -a ${{ matrix.arch }} -t 11.0
+          test -d build/${{ matrix.arch }}/OrcaSlicer/OrcaSlicer.app
 
       - name: Printer list cache
-        run: ./scripts/build_preset_cache.sh -b build/arm64 build/arm64/OrcaSlicer/OrcaSlicer.app/Contents/Resources/profiles
+        run: ./scripts/build_preset_cache.sh -b build/${{ matrix.arch }} build/${{ matrix.arch }}/OrcaSlicer/OrcaSlicer.app/Contents/Resources/profiles
 
       # Unsigned for now: on first open, right-click the app > Open > Open (or System Settings > Privacy & Security > Open Anyway).
       - name: Make the .dmg
@@ -158,15 +160,15 @@ jobs:
           source scripts/retry.sh
           source scripts/create_dmg.sh
           mkdir -p build/dmg
-          cp -R build/arm64/OrcaSlicer/OrcaSlicer.app "build/dmg/UB Slicer.app"
+          cp -R build/${{ matrix.arch }}/OrcaSlicer/OrcaSlicer.app "build/dmg/UB Slicer.app"
           codesign --force --deep --sign - "build/dmg/UB Slicer.app"
           ln -sfn /Applications build/dmg/Applications
-          create_dmg "UB Slicer" build/dmg "UB_Slicer_Mac_AppleChip_V${ver}.dmg"
+          create_dmg "UB Slicer" build/dmg "UB_Slicer_Mac_${{ matrix.label }}_V${ver}.dmg"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: UB_Slicer_Mac_AppleChip_V${{ env.ver }}_${{ matrix.os }}
-          path: UB_Slicer_Mac_AppleChip_V*.dmg
+          name: UB_Slicer_Mac_${{ matrix.label }}_V${{ env.ver }}
+          path: UB_Slicer_Mac_*.dmg
 
   release:
     name: Publish release (tags only)
