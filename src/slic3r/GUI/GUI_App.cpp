@@ -290,7 +290,7 @@ public:
         m_constant_text.init(Label::Body_16);
 
 		// ORCA scale all fonts with monitor scale
-        scale_font(m_constant_text.version_font,	m_scale * 2);
+        scale_font(m_constant_text.version_font,	m_scale * 1.2f); // UB Slicer: smaller version number under the logo
         scale_font(m_constant_text.based_on_font,	m_scale * 1.5f);
         scale_font(m_constant_text.credits_font,	m_scale * 2);
 

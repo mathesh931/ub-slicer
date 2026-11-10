@@ -42,3 +42,4 @@ UB Slicer started as an exact copy of OrcaSlicer **v2.3.1** (commit `f2d10a0`), 
 | `src/slic3r/Utils/PresetUpdater.cpp` (`check_installed_vendor_profiles`) | Unbound3D always installed with the Lynx 350 switched on, also for older settings folders |
 | `src/libslic3r/PresetBundle.cpp` (`load_selections`) | a saved printer that no longer exists falls back to the Unbound3D Lynx 350 |
 | `resources/profiles/Custom.json` | version raised to 02.03.01.20 so old copies (with MyKlipper) in users' settings folders are replaced |
+| `src/slic3r/GUI/GUI_App.cpp` (splash `version_font`) | smaller version number on the splash screen |
