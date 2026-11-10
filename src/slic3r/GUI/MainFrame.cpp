@@ -2948,12 +2948,14 @@ wxMenu* MainFrame::generate_help_menu()
     //        //TODO
     //    });
     // Check New Version
+#if 0 // UB Slicer: no Orca update check
     append_menu_item(helpMenu, wxID_ANY, _L("Check for Updates"), _L("Check for Updates"),
         [](wxCommandEvent&) {
             wxGetApp().check_new_version_sf(true, 1);
         }, "", nullptr, []() {
             return true;
         });
+#endif
 
     // About
 #ifndef __APPLE__
@@ -3649,6 +3651,7 @@ void MainFrame::init_menubar_as_editor()
         },
         "", nullptr, []() { return true; }, this);
 
+#if 0 // UB Slicer: no OrcaCloud preset sync
     append_menu_item(
         top_menu, wxID_ANY, _L("Sync Presets"), _L("Pull and apply the latest presets from OrcaCloud"),
         [this](wxCommandEvent&) {
@@ -3666,14 +3669,17 @@ void MainFrame::init_menubar_as_editor()
         []() {
             return wxGetApp().is_user_login() && !wxGetApp().app_config->get_stealth_mode();
         }, this);
+#endif
 
     top_menu->AppendSeparator();
+#if 0 // UB Slicer: no Orca plugin store
     append_menu_item(
         top_menu, wxID_ANY, _L("Plugins") + "\t", "",
         [](wxCommandEvent &) {
             wxGetApp().open_plugins_dialog();
         },
         "", nullptr, []() { return true; }, this);
+#endif
 
     //m_topbar->AddDropDownMenuItem(preference_item);
     //m_topbar->AddDropDownMenuItem(printer_item);
@@ -3753,6 +3759,7 @@ void MainFrame::init_menubar_as_editor()
         },
         "", nullptr, []() { return true; }, this);
 
+#if 0 // UB Slicer: no OrcaCloud preset sync
     append_menu_item(
         fileMenu, wxID_ANY, _L("Sync Presets"), _L("Pull and apply the latest presets from OrcaCloud"),
         [this](wxCommandEvent&) {
@@ -3770,11 +3777,14 @@ void MainFrame::init_menubar_as_editor()
         []() {
             return wxGetApp().is_user_login() && !wxGetApp().app_config->get_stealth_mode();
         }, this);
+#endif
 
     fileMenu->AppendSeparator();
+#if 0 // UB Slicer: no Orca plugin store
     append_menu_item(
         fileMenu, wxID_ANY, _L("Plugins"), "", [](wxCommandEvent&) { wxGetApp().open_plugins_dialog(); }, "", nullptr,
         []() { return true; }, this);
+#endif
 
     fileMenu->AppendSeparator();
 
