@@ -1,14 +1,15 @@
 {
-    "type": "filament",
-    "name": "Lynx350 Numaker ASA @Unbound3D",
-    "from": "system",
-    "instantiation": "true",
-    "filament_id": "GFL23",
-    "filament_settings_id": [
-        "Lynx350 Numaker ASA @Unbound3D"
-    ],
-    "inherits": "Generic ASA @System",
-    "compatible_printers": [
-        "Unbound3D Lynx 350 0.4 nozzle"
-    ]
+	"type": "filament",
+	"name": "Lynx350 Numaker ASA @Unbound3D",
+	"inherits": "Generic ASA @System",
+	"from": "system",
+	"setting_id": "iA7hRrKYK2jmT7kQ",
+	"filament_id": "OFBgRESJ",
+	"instantiation": "true",
+	"filament_settings_id": [
+		"Lynx350 Numaker ASA @Unbound3D"
+	],
+	"compatible_printers": [
+		"Unbound3D Lynx 350 0.4 nozzle"
+	]
 }

@@ -3,7 +3,7 @@
     "name": "Unbound3D Lynx 320 0.4 nozzle",
     "inherits": "fdm_unbound3d_common",
     "from": "system",
-    "setting_id": "GM001",
+    "setting_id": "PBeUnBxzoXTK92bQ",
     "instantiation": "true",
     "printer_model": "Unbound3D Lynx 320",
     "nozzle_diameter": [

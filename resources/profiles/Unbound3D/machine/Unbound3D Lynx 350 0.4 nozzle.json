@@ -3,7 +3,7 @@
     "name": "Unbound3D Lynx 350 0.4 nozzle",
     "inherits": "fdm_unbound3d_common",
     "from": "system",
-    "setting_id": "GM002",
+    "setting_id": "4GthBFdPJJFpt6pd",
     "instantiation": "true",
     "printer_model": "Unbound3D Lynx 350",
     "nozzle_diameter": [
@@ -146,6 +146,7 @@
         "0.4"
     ],
     "machine_max_junction_deviation": [
+        "0.3",
         "0.3"
     ],
     "machine_max_speed_e": [

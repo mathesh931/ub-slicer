@@ -1,16 +1,24 @@
-#include <catch2/catch.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <catch2/catch_all.hpp>
 
+#include <catch2/catch_test_macros.hpp>
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/ModelArrange.hpp"
 
-#include <boost/nowide/cstdio.hpp>
 #include <boost/filesystem.hpp>
+#include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/PrintConfig.hpp"
+#include <vector>
+#include "libslic3r/Point.hpp"
+#include <cstddef>
 
-#include "test_data.hpp"
+#include "test_helpers.hpp"
+#include "test_utils.hpp"
+#include "libslic3r/Arrange.hpp"
+#include "libslic3r/Print.hpp"
 
 using namespace Slic3r;
-using namespace Slic3r::Test;
 
 SCENARIO("Model construction", "[Model]") {
     GIVEN("A Slic3r Model") {
@@ -49,12 +57,11 @@ SCENARIO("Model construction", "[Model]") {
 				print.set_status_silent();
 				print.apply(model, config);
 				print.process();
-				boost::filesystem::path temp = boost::filesystem::unique_path();
+				ScopedTemporaryFile temp(".gcode");
                 print.export_gcode(temp.string(), nullptr, nullptr);
-                REQUIRE(boost::filesystem::exists(temp));
-				REQUIRE(boost::filesystem::is_regular_file(temp));
-				REQUIRE(boost::filesystem::file_size(temp) > 0);
-				boost::nowide::remove(temp.string().c_str());
+                REQUIRE(boost::filesystem::exists(temp.path()));
+				REQUIRE(boost::filesystem::is_regular_file(temp.path()));
+				REQUIRE(boost::filesystem::file_size(temp.path()) > 0);
 			}
         }
     }

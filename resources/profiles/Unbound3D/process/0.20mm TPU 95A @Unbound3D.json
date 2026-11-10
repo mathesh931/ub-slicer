@@ -3,7 +3,7 @@
     "name": "0.20mm TPU 95A @Unbound3D",
     "inherits": "0.20mm Standard @Unbound3D",
     "from": "system",
-    "setting_id": "GP015",
+    "setting_id": "xoI8dzGYDu4eZbxa",
     "instantiation": "true",
     "brim_type": "outer_only",
     "default_acceleration": "4000",

@@ -2,8 +2,7 @@
     "type": "filament",
     "name": "eSUN PA-CF black @MyKlipper 0.4 nozzle @Unbound3D",
     "from": "system",
-    "filament_id": "GFL01",
-    "setting_id": "GFS01",
+    "filament_id": "OFEeDLIV",
     "instantiation": "false",
     "activate_air_filtration": [
         "0"

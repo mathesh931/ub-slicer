@@ -3,7 +3,7 @@
     "name": "0.20mm Numaker PLA+ @Unbound3D",
     "inherits": "0.20mm Standard @Unbound3D",
     "from": "system",
-    "setting_id": "GP012",
+    "setting_id": "9FiQnZNq8M178U0D",
     "instantiation": "true",
     "brim_type": "outer_only",
     "default_acceleration": "4000",

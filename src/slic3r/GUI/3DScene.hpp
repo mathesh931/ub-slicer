@@ -7,6 +7,7 @@
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Geometry.hpp"
+#include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Color.hpp"
 // BBS
 #include "libslic3r/ObjectID.hpp"
@@ -15,8 +16,17 @@
 #include "GLShader.hpp"
 #include "MeshUtils.hpp"
 
+#include <array>
+#include <cstddef>
+#include <cmath>
 #include <functional>
+#include <map>
+#include "libslic3r/BoundingBox.hpp"
+#include <memory>
 #include <optional>
+#include <vector>
+#include <string>
+#include <utility>
 
 #ifndef NDEBUG
 #define HAS_GLSAFE
@@ -32,7 +42,6 @@
     #define glsafe(cmd) cmd
     #define glcheck()
 #endif // HAS_GLSAFE
-extern std::vector<Slic3r::ColorRGBA> get_extruders_colors();
 extern float                          FullyTransparentMaterialThreshold;
 extern float                          FullTransparentModdifiedToFixAlpha;
 extern Slic3r::ColorRGBA              adjust_color_for_rendering(const Slic3r::ColorRGBA &colors);
@@ -59,6 +68,22 @@ enum ModelInstanceEPrintVolumeState : unsigned char;
 
 using ModelObjectPtrs = std::vector<ModelObject*>;
 
+struct ObjectFilamentInfo {
+    ModelObject* object { nullptr };
+    std::map<int, int> manual_filaments; //manual mode: filament id -> extruder id can not be printed
+
+    std::vector<int> auto_filaments; //auto mode: filaments in all extruder's outside area
+};
+
+struct ObjectFilamentResults {
+    FilamentMapMode         mode;
+    std::vector<int>        filaments; //filaments has conflicts
+    std::map<int, int>      filament_maps; //filament maps
+    std::vector<ModelObject*> partly_outside_objects; //partly outside objects
+
+    std::vector<ObjectFilamentInfo> object_filaments;
+};
+
 // Return appropriate color based on the ModelVolume.
 extern ColorRGBA color_from_model_volume(const ModelVolume& model_volume);
 
@@ -77,9 +102,17 @@ public:
     static ColorRGBA SUPPORT_ENFORCER_COL;
     static ColorRGBA SUPPORT_BLOCKER_COL;
     static ColorRGBA MODEL_HIDDEN_COL;
+    // Precise Seam modifier colors
+    static ColorRGBA PRECISE_SEAM_CENTER_COL;
+    static ColorRGBA PRECISE_SEAM_LEFT_COL;
+    static ColorRGBA PRECISE_SEAM_RIGHT_COL;
+    static ColorRGBA PRECISE_SEAM_ENFORCED_COL;
+    static ColorRGBA PRECISE_SEAM_NEUTRAL_COL;
+    static ColorRGBA PRECISE_SEAM_BLOCKED_COL;
 
     static void update_render_colors();
     static void load_render_colors();
+    static ColorRGBA brighten_color(const ColorRGBA& color, float multiplier = 1.25f);
 
     static float explosion_ratio;
     static float last_explosion_ratio;
@@ -178,6 +211,8 @@ public:
 	    bool                visible : 1;
 	    // Whether or not this volume is active for rendering
 	    bool                is_active : 1;
+	    // Whether or not is_active was cleared because the other plates are hidden
+	    bool                on_hidden_plate : 1;
 	    // Whether or not to use this volume when applying zoom_to_volumes()
 	    bool                zoom_to_volumes : 1;
 	    // Wheter or not this volume is enabled for outside print volume detection in shader.
@@ -199,8 +234,14 @@ public:
         bool                force_neutral_color : 1;
         // Whether or not to force rendering of sinking contours
         bool                force_sinking_contours : 1;
+        // Orca: draw this volume with a positive depth bias (glPolygonOffset, pushed away from the
+        // camera), so on a surface it shares with another volume the other volume wins the depth
+        // test instead of z-fighting it
+        bool                depth_bias : 1;
         // Is render for picking
         bool                picking : 1;
+        // slice error
+        bool                slice_error : 1;
     };
 
     // Is mouse or rectangle selection over this object to select/deselect it ?
@@ -329,7 +370,7 @@ public:
     virtual void render_with_outline(const GUI::Size& cnv_size);
 
     //BBS: add simple render function for thumbnail
-    void simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<ColorRGBA>& extruder_colors, bool ban_light =false);
+    void simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<ColorRGBA>& extruder_colors, bool ban_light =false, bool ban_color_volume = false);
 
     void                set_bounding_boxes_as_dirty() {
         m_transformed_bounding_box.reset();
@@ -464,11 +505,12 @@ public:
 
     int load_wipe_tower_preview(
         int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool size_unknown, float brim_width);
-
+    int load_real_wipe_tower_preview(
+    int obj_idx, float pos_x, float pos_y,const TriangleMesh& wt_mesh,const TriangleMesh &brim_mesh,bool render_brim, float rotation_angle, bool size_unknown,  bool opengl_initialized);
     GLVolume* new_toolpath_volume(const ColorRGBA& rgba);
     GLVolume* new_nontoolpath_volume(const ColorRGBA& rgba);
 
-    int get_selection_support_threshold_angle(bool&) const;
+    float get_selection_support_normal_z() const;
     // Render the volumes by OpenGL.
     //BBS: add outline drawing logic
     void render(ERenderType                           type,
@@ -477,7 +519,10 @@ public:
                 const Transform3d&                    projection_matrix,
                 const GUI::Size&                      cnv_size,
                 std::function<bool(const GLVolume &)> filter_func   = std::function<bool(const GLVolume &)>(),
-                bool                                  partly_inside_enable =true
+                bool                                  partly_inside_enable =true,
+                // Per-extruder printable heights (extruder_printable_height); null / size<=1
+                // leaves the shader's extruder_printable_heights flag at 0.0 (single-extruder = inert).
+                std::vector<double> *                 printable_heights = nullptr
            ) const;
 
     // Clear the geometry
@@ -514,8 +559,9 @@ public:
 
     // returns true if all the volumes are completely contained in the print volume
     // returns the containment state in the given out_state, if non-null
-    bool check_outside_state(const Slic3r::BuildVolume& build_volume, ModelInstanceEPrintVolumeState* out_state) const;
+    bool check_outside_state(const Slic3r::BuildVolume& build_volume, ModelInstanceEPrintVolumeState* out_state, ObjectFilamentResults* object_results) const;
     void reset_outside_state();
+    bool check_wipe_tower_outside_state(const Slic3r::BuildVolume &build_volume, int plate_id) const;
 
     void update_colors_by_extruder(const DynamicPrintConfig *config, bool is_update_alpha = true);
 

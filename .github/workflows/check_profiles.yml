@@ -1,7 +1,7 @@
 name: Check printer profiles
 
-# Checks the built-in printer, process and filament profiles (Unbound, Custom, filament library)
-# with Orca's own checks whenever they change.
+# Checks the built-in printer, process and filament profiles (Unbound3D, Custom, filament library)
+# with Orca's own profile tool whenever they change.
 
 on:
   push:
@@ -18,12 +18,5 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
-
-      - name: Orca's JSON checks
-        run: python3 ./scripts/orca_extra_profile_check.py
-
-      - name: Orca's profile validator
-        run: |
-          curl -fsSLO https://github.com/SoftFever/Orca_tools/releases/download/1/OrcaSlicer_profile_validator
-          chmod +x ./OrcaSlicer_profile_validator
-          ./OrcaSlicer_profile_validator -p "${{ github.workspace }}/resources/profiles" -l 2
+      - name: Orca's profile tool
+        run: python3 ./scripts/orca_profile_tool.py check

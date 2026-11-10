@@ -2,16 +2,17 @@
 #define slic3r_AppConfig_hpp_
 
 #include <set>
+#include <chrono>
 #include <map>
 #include <string>
-#include "nlohmann/json.hpp"
+#include "LocalesUtils.hpp"
 #include <boost/algorithm/string/trim_all.hpp>
+#include <utility>
+#include <vector>
 
 #include "libslic3r/Config.hpp"
 #include "libslic3r/Semver.hpp"
 #include "calib.hpp"
-
-using namespace nlohmann;
 
 #define ENV_DEV_HOST		"0"
 #define ENV_QAT_HOST		"1"
@@ -23,6 +24,46 @@ using namespace nlohmann;
 #define OPTION_PROJECT_LOAD_BEHAVIOUR_ASK_WHEN_RELEVANT "ask_when_relevant"
 #define OPTION_PROJECT_LOAD_BEHAVIOUR_ALWAYS_ASK "always_ask"
 #define OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_GEOMETRY "load_geometry_only"
+
+#define SETTING_NETWORK_PLUGIN_VERSION "network_plugin_version"
+#define SETTING_NETWORK_PLUGIN_SKIPPED_VERSIONS "network_plugin_skipped_versions"
+#define SETTING_NETWORK_PLUGIN_UPDATE_DISABLED "network_plugin_update_prompts_disabled"
+#define SETTING_NETWORK_PLUGIN_REMIND_LATER "network_plugin_remind_later"
+#define SETTING_USE_ENCRYPTED_TOKEN_FILE "use_encrypted_token_file"
+#define SETTING_CLOUD_PROVIDERS "cloud_providers"
+#define SETTING_OPENGL_AA_SAMPLES "opengl_antialiasing_samples"
+#define SETTING_OPENGL_FXAA_ENABLED "opengl_fxaa_enabled"
+#define SETTING_OPENGL_FPS_CAP "opengl_fps_cap"
+#define SETTING_OPENGL_SCENE_CACHE "opengl_scene_cache"
+#define SETTING_OPENGL_SKIP_IDENTICAL_FRAMES "opengl_skip_identical_frames"
+#define SETTING_OPENGL_SHOW_FPS_OVERLAY "opengl_show_fps_overlay"
+#define SETTING_OPENGL_SHOW_RENDER_TIMINGS "opengl_show_render_timings"
+#define SETTING_OPENGL_REALISTIC_MODE "opengl_realistic_mode"
+#define SETTING_OPENGL_REALISTIC_PHONG "opengl_realistic_phong"
+#define SETTING_OPENGL_SHADING_MODEL "opengl_shading_model"
+#define SETTING_OPENGL_PHONG_BASIC_PLATE_SHADOWS "opengl_phong_basic_plate_shadows"
+// off, static (light fixed in the world) or orbit (light turning with the camera)
+#define SETTING_OPENGL_REALISTIC_SHADOWS "opengl_realistic_shadows"
+#define SETTING_OPENGL_PHONG_SSAO "opengl_phong_ssao"
+#define SETTING_OPENGL_PHONG_SMOOTH_NORMALS "opengl_phong_smooth_normals"
+#define SETTING_OPENGL_REALISTIC_PREVIEW "opengl_realistic_preview"
+#define SETTING_OPENGL_REALISTIC_GLOSS "opengl_realistic_gloss"
+
+#define SETTING_PLUGIN_PAGES_VISIBLE_COUNT "plugin_pages_visible_count"
+#define PLUGIN_PAGES_VISIBLE_COUNT_MIN 1
+#define PLUGIN_PAGES_VISIBLE_COUNT_DEFAULT 5
+#define PLUGIN_PAGES_VISIBLE_COUNT_MAX 10
+
+#define SETTING_SPEED_DIAL_RECENT_COUNT "speed_dial_recent_count"
+#define SPEED_DIAL_RECENT_COUNT_MIN 0
+#define SPEED_DIAL_RECENT_COUNT_DEFAULT 5
+#define SPEED_DIAL_RECENT_COUNT_MAX 10
+
+#if defined(_WIN32) || defined(_WIN64)
+#define BAMBU_NETWORK_AGENT_VERSION_LEGACY "01.10.01.09"
+#else
+#define BAMBU_NETWORK_AGENT_VERSION_LEGACY "01.10.01.01"
+#endif
 
 #define SUPPORT_DARK_MODE
 //#define _MSW_DARK_MODE
@@ -38,10 +79,19 @@ struct BBLocalMachine
     std::string dev_ip;
     std::string dev_id; /* serial number */
     std::string printer_type; /* model_id */
+    std::string printer_agent_id; /* id of the IPrinterAgent that discovered/bound this device, e.g. "bbl"; empty for entries persisted before this field existed */
+    // Access code, scoped to printer_agent_id above - so a code saved while bound under one
+    // printer agent isn't treated as valid for a different, independent agent talking to the
+    // same physical dev_id. Empty for entries persisted before this field existed; those fall
+    // back to the legacy flat "access_code"/"user_access_code" AppConfig sections (BBL-only,
+    // since BBL was the only agent when they were saved) - see
+    // get_access_code_with_legacy_fallback() in DevManager.cpp.
+    std::string access_code;
 
     bool operator==(const BBLocalMachine& other) const
     {
-        return dev_name == other.dev_name && dev_ip == other.dev_ip && dev_id == other.dev_id && printer_type == other.printer_type;
+        return dev_name == other.dev_name && dev_ip == other.dev_ip && dev_id == other.dev_id && printer_type == other.printer_type &&
+               printer_agent_id == other.printer_agent_id && access_code == other.access_code;
     }
     bool operator!=(const BBLocalMachine& other) const { return !operator==(other); }
 };
@@ -68,6 +118,7 @@ public:
 	std::string get_language_code();
 	std::string get_hms_host();
 	bool get_stealth_mode();
+	bool get_hide_login_side_panel();
 
 	// Clear and reset to defaults.
 	void 			   	reset();
@@ -75,13 +126,19 @@ public:
 	void 			   	set_defaults();
 
 	// Load the slic3r.ini from a user profile directory (or a datadir, if configured).
-	// return error string or empty strinf
-	std::string         load();
+	// Return an error string, or an empty string on success.
+	std::string         load(bool read_only = false);
+	// Treat a missing config as default state; otherwise load it normally.
+	// The CLI's load: it never saves, so it takes no lock and creates no lock file.
+	std::string         load_if_exists();
 	// Store the slic3r.ini into a user profile directory (or a datadir, if configured).
 	void 			   	save();
 
 	// Does this config need to be saved?
 	bool 				dirty() const { return m_dirty; }
+	// False for ten seconds after a failed write, so the idle handler does not
+	// repeat a hopeless attempt on every event; an explicit save() always tries.
+	bool 				save_due() const { return std::chrono::steady_clock::now() >= m_retry_save_at; }
 
 
 	void				set_dirty() { m_dirty = true; }
@@ -94,7 +151,7 @@ public:
 		if (it == m_storage.end())
 			return false;
 		auto it2 = it->second.find(key);
-		if (it2 == it->second.end()) 
+		if (it2 == it->second.end())
 			return false;
 		value = it2->second;
 		return true;
@@ -103,10 +160,16 @@ public:
 		{ std::string value; this->get(section, key, value); return value; }
 	std::string 		get(const std::string &key) const
 		{ std::string value; this->get("app", key, value); return value; }
+	// The spellings a boolean has in a saved configuration ("1" is the legacy form).
+	static bool			is_true(const std::string &value) { return value == "true" || value == "1"; }
 	bool				get_bool(const std::string &section, const std::string &key) const
-		{ return this->get(section, key) == "true" || this->get(key) == "1"; }
+		{ return is_true(this->get(section, key)); }
 	bool				get_bool(const std::string &key) const
 		{ return this->get_bool("app", key); }
+	// Reads one "app" boolean straight from the editor configuration saved in data_dir, for the
+	// few settings that must act before the configuration is loaded. False when the file is
+	// missing, unreadable or has no such key.
+	static bool			peek_bool(const std::string &data_dir, const std::string &key);
 	void			    set(const std::string &section, const std::string &key, const std::string &value)
 	{
 #ifndef NDEBUG
@@ -140,6 +203,9 @@ public:
 			m_dirty = true;
 		}
 	}
+
+	void                set(const std::string& section, const std::string& key, const char* value)
+		{ this->set(section, key, std::string(value)); }
 
 	void				set(const std::string& section, const std::string &key, bool value)
 	{
@@ -197,7 +263,7 @@ public:
 	const VendorMap&    vendors() const { return m_vendors; }
 
 	// Orca printer settings
-    typedef std::map<std::string, nlohmann::json> MachineSettingMap;
+    typedef std::map<std::string, std::map<std::string, std::string>> MachineSettingMap;
     bool has_printer_settings(std::string printer) const {
         return m_printer_settings.find(printer) != m_printer_settings.end();
     }
@@ -208,9 +274,7 @@ public:
     bool has_printer_setting(std::string printer, std::string name) {
         if (!has_printer_settings(printer))
             return false;
-        if (!m_printer_settings[printer].contains(name))
-            return false;
-        return true;
+        return m_printer_settings[printer].count(name) != 0;
     }
     std::string get_printer_setting(std::string printer, std::string name) {
         if (!has_printer_setting(printer, name))
@@ -246,6 +310,8 @@ public:
         }
     }
 
+    void clear_local_machine_access_code(const std::string& dev_id, const std::string& agent_id);
+
     const std::vector<std::string> &get_filament_presets() const { return m_filament_presets; }
     void set_filament_presets(const std::vector<std::string> &filament_presets){
         m_filament_presets = filament_presets;
@@ -280,6 +346,10 @@ public:
 
     void                save_custom_color_to_config(const std::vector<std::string> &colors);
     std::vector<std::string> get_custom_color_from_config();
+
+    void save_nozzle_volume_types_to_config(const std::string& printer_name, const std::string& nozzle_volume_types);
+    std::string get_nozzle_volume_types_from_config(const std::string& printer_name);
+
 	// reset the current print / filament / printer selections, so that
 	// the  PresetBundle::load_selections(const AppConfig &config) call will select
 	// the first non-default preset when called.
@@ -287,6 +357,10 @@ public:
 
 	// Get the default config path from Slic3r::data_dir().
 	std::string			config_path();
+	// The configuration file of the given mode inside data_dir.
+	static std::string	config_path(const std::string &data_dir, EAppMode mode);
+	// Lock file guarding config_path() against other running instances; empty without a data dir.
+	std::string			lock_path();
 
 	// Returns true if the user's data directory comes from before Slic3r 1.40.0 (no updating)
 	bool 				legacy_datadir() const { return m_legacy_datadir; }
@@ -343,9 +417,38 @@ public:
     static const std::string SECTION_MATERIALS;
     static const std::string SECTION_EMBOSS_STYLE;
 
+    std::string get_network_plugin_version() const;
+    void set_network_plugin_version(const std::string& version);
+
+    // Number of plugin pages shown as fixed tabs before the rest are collapsed into a
+    // dropdown on the last tab.
+    int get_plugin_pages_visible_count() const;
+
+    // Number of recently launched actions shown at the top of the Speed Dial; 0 hides them.
+    int get_speed_dial_recent_count() const;
+
+    std::vector<std::string> get_skipped_network_versions() const;
+    void add_skipped_network_version(const std::string& version);
+    bool is_network_version_skipped(const std::string& version) const;
+    void clear_skipped_network_versions();
+
+    bool is_network_update_prompt_disabled() const;
+    void set_network_update_prompt_disabled(bool disabled);
+
+    bool should_remind_network_update_later() const;
+    void set_remind_network_update_later(bool remind);
+    void clear_remind_network_update_later();
+
+    // Cloud providers (semicolon-delimited, e.g. "orca;bambu")
+    std::vector<std::string> get_cloud_providers() const;
+    void set_cloud_providers(const std::vector<std::string>& providers);
+    bool has_cloud_provider(const std::string& provider) const;
+    void add_cloud_provider(const std::string& provider);
+    void remove_cloud_provider(const std::string& provider);
+
 private:
 	template<typename T>
-	bool get_3dmouse_device_numeric_value(const std::string &device_name, const char *parameter_name, T &out) const 
+	bool get_3dmouse_device_numeric_value(const std::string &device_name, const char *parameter_name, T &out) const
 	{
 	    std::string key = std::string("mouse_device:") + device_name;
 	    auto it = m_storage.find(key);
@@ -368,8 +471,16 @@ private:
 
 	// Preset for each machine
 	MachineSettingMap											m_printer_settings;
+	// Writes the assembled config text, and on Windows its checksum and a backup copy; false when the
+	// config itself could not be written, in which case the caller stays dirty and retries. `checksum_source`
+	// is the text load() will verify, which for the JSON config ends before the trailing newline.
+	bool												write_config_file(const std::string &path, std::string body, const std::string &checksum_source);
+
 	// Has any value been modified since the config.ini has been last saved or loaded?
 	bool														m_dirty;
+	// After a failed write, save_due() is false for the next ten seconds, so the
+	// idle handler does not repeat a hopeless write on every event.
+	std::chrono::steady_clock::time_point						m_retry_save_at{};
 	// Original version found in the ini file before it was overwritten
 	Semver                                                      m_orig_version;
 	// Whether the existing version is before system profiles & configuration updating
@@ -379,6 +490,8 @@ private:
 
 	std::vector<std::string>									m_filament_presets;
     std::vector<std::string>									m_filament_colors;
+	std::vector<std::string>									m_filament_multi_colors;
+	std::vector<std::string>									m_filament_color_types;
 
 	std::vector<PrinterCaliInfo>								m_printer_cali_infos;
 

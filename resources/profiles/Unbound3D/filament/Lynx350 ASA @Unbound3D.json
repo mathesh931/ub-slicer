@@ -1,20 +1,31 @@
 {
-    "enable_pressure_advance": [
-        "1"
-    ],
-    "pressure_advance": [
-        "0.001"
-    ],
-    "type": "filament",
-    "name": "Lynx350 ASA @Unbound3D",
-    "from": "system",
-    "instantiation": "true",
-    "filament_id": "GFL22",
-    "filament_settings_id": [
-        "Lynx350 ASA @Unbound3D"
-    ],
-    "inherits": "Generic ASA @System",
-    "compatible_printers": [
-        "Unbound3D Lynx 350 0.4 nozzle"
-    ]
+	"type": "filament",
+	"name": "Lynx350 ASA @Unbound3D",
+	"inherits": "Generic ASA @System",
+	"from": "system",
+	"setting_id": "UGRvfpRB0GqPLzaV",
+	"filament_id": "OF12pv2G",
+	"instantiation": "true",
+	"enable_pressure_advance": [
+		"1",
+		"1",
+		"1",
+		"1",
+		"1",
+		"1"
+	],
+	"pressure_advance": [
+		"0.001",
+		"0.001",
+		"0.001",
+		"0.001",
+		"0.001",
+		"0.001"
+	],
+	"filament_settings_id": [
+		"Lynx350 ASA @Unbound3D"
+	],
+	"compatible_printers": [
+		"Unbound3D Lynx 350 0.4 nozzle"
+	]
 }

@@ -3,7 +3,7 @@
     "name": "0.20mm fibreel pa-cf lynx320 @Unbound3D",
     "inherits": "0.20mm Standard @Unbound3D",
     "from": "system",
-    "setting_id": "GP010",
+    "setting_id": "2pmmXx25EUwvSBiG",
     "instantiation": "true",
     "brim_type": "outer_only",
     "default_acceleration": "4000",

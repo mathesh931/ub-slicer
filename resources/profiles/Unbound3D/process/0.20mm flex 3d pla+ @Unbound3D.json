@@ -3,7 +3,7 @@
     "name": "0.20mm flex 3d pla+ @Unbound3D",
     "inherits": "0.20mm Standard @Unbound3D",
     "from": "system",
-    "setting_id": "GP011",
+    "setting_id": "cjsBqC9DYrRhImRf",
     "instantiation": "true",
     "brim_type": "outer_only",
     "default_acceleration": "1000",

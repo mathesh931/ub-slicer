@@ -1,0 +1,184 @@
+name: Build UB Slicer
+
+# Builds UB Slicer for Windows (installer + portable zip) and Mac (Apple-chip .dmg).
+#  - every change to main and every pull request: download them from the run's "Artifacts"
+#  - a tag like v2.5.0: also published on the repository's Releases page
+# The first run of each builds Orca's libraries (1.5-3 hours) and keeps them; later runs reuse them.
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths-ignore: ["**.md", "doc/**", "docs/**"]
+  pull_request:
+    branches: [main]
+    paths-ignore: ["**.md", "doc/**", "docs/**"]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write # to publish a release on tags
+
+env:
+  NSIS_VERSION: '3.13'
+  NSIS_SHA256: BA63DFFC4410EE89193E1CB5A41989991BD77C61068DA17E3156D136B7B0B3D8
+
+jobs:
+  windows:
+    name: Windows installer
+    runs-on: windows-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Tools (CMake 4.3, Ninja, Visual Studio)
+        shell: pwsh
+        run: |
+          pip install "cmake~=4.3.0" "ninja~=1.13.0"
+          $ver = (Select-String -Path version.inc -Pattern 'set\(SoftFever_VERSION "(.*)"\)').Matches[0].Groups[1].Value
+          "ver=$ver" | Out-File -Append $env:GITHUB_ENV -Encoding utf8
+
+      - uses: microsoft/setup-msbuild@v2
+
+      # Orca's libraries: built once, then reused until deps/ changes.
+      - name: Restore built libraries
+        id: deps
+        uses: actions/cache/restore@v4
+        with:
+          path: deps/build/OrcaSlicer_dep
+          key: windows-x64-clang-deps-${{ hashFiles('deps/**') }}
+
+      - name: Build libraries (first time only)
+        if: steps.deps.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          choco install strawberryperl -y --no-progress
+          .\build_win.bat -d --arch x64 --deps-dir "${{ github.workspace }}/deps/build" -l -x
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path deps\build\OrcaSlicer_dep)) { throw "Building the libraries failed" }
+
+      - name: Keep built libraries for next time
+        if: steps.deps.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: deps/build/OrcaSlicer_dep
+          key: ${{ steps.deps.outputs.cache-primary-key }}
+
+      - name: Build UB Slicer
+        shell: pwsh
+        run: |
+          .\build_win.bat -s -i --arch x64 --build-dir build --deps-dir "${{ github.workspace }}/deps/build" -l -x
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path build\OrcaSlicer\ub-slicer.exe)) { throw "Building UB Slicer failed" }
+
+      - name: Printer list cache
+        shell: cmd
+        run: scripts\build_preset_cache.bat --prune-source "build" "resources\profiles" "build\OrcaSlicer\resources\profiles"
+
+      - name: Make the installer
+        shell: pwsh
+        run: |
+          $zip = Join-Path $env:RUNNER_TEMP "nsis.zip"
+          curl.exe -fsSL --retry 5 --retry-all-errors -o $zip "https://downloads.sourceforge.net/project/nsis/NSIS%203/$env:NSIS_VERSION/nsis-$env:NSIS_VERSION.zip"
+          if ((Get-FileHash $zip -Algorithm SHA256).Hash -ne $env:NSIS_SHA256) { throw "NSIS download does not match its fingerprint" }
+          Expand-Archive $zip $env:RUNNER_TEMP
+          $env:PATH = (Join-Path $env:RUNNER_TEMP "nsis-$env:NSIS_VERSION") + ";" + $env:PATH
+          cd build
+          cpack -G NSIS
+          if ($LASTEXITCODE -ne 0) { Get-Content _CPack_Packages/*/NSIS/NSISOutput.log -Tail 80; throw "Making the installer failed" }
+
+      - name: Make the portable zip
+        shell: pwsh
+        run: |
+          Copy-Item -Recurse build\OrcaSlicer "build\UB Slicer"
+          & "C:\Program Files\7-Zip\7z.exe" a -tzip "build\UB_Slicer_Windows_V$env:ver`_portable.zip" "build\UB Slicer"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: UB_Slicer_Windows_Installer_V${{ env.ver }}
+          path: build/UB_Slicer_Windows_Installer_*.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: UB_Slicer_Windows_V${{ env.ver }}_portable
+          path: build/UB_Slicer_Windows_*_portable.zip
+
+  mac:
+    name: Mac app (Apple chip)
+    # Mac build minutes count 10x on private repositories: the Mac app is built once the repository is public.
+    if: ${{ !github.event.repository.private }}
+    runs-on: macos-15
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Tools
+        run: |
+          brew install automake texinfo libtool pkgconf yasm nasm ninja
+          pip3 install --break-system-packages "cmake~=4.3.0" || pip3 install "cmake~=4.3.0"
+          echo "ver=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)" >> "$GITHUB_ENV"
+          mkdir -p deps/build/arm64
+
+      - name: Restore built libraries
+        id: deps
+        uses: actions/cache/restore@v4
+        with:
+          path: deps/build/arm64/OrcaSlicer_dep
+          key: macos-arm64-deps-${{ hashFiles('deps/**') }}
+
+      - name: Build libraries (first time only)
+        if: steps.deps.outputs.cache-hit != 'true'
+        run: |
+          ./build_release_macos.sh -dx -j 3 -a arm64 -t 11.0
+          (cd deps/build/arm64 && find . -mindepth 1 -maxdepth 1 ! -name 'OrcaSlicer_dep' -exec rm -rf {} +)
+          test -d deps/build/arm64/OrcaSlicer_dep
+
+      - name: Keep built libraries for next time
+        if: steps.deps.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: deps/build/arm64/OrcaSlicer_dep
+          key: ${{ steps.deps.outputs.cache-primary-key }}
+
+      - name: Build UB Slicer
+        run: |
+          ./build_release_macos.sh -s -n -x -j 3 -a arm64 -t 11.0
+          test -d build/arm64/OrcaSlicer/OrcaSlicer.app
+
+      - name: Printer list cache
+        run: ./scripts/build_preset_cache.sh -b build/arm64 build/arm64/OrcaSlicer/OrcaSlicer.app/Contents/Resources/profiles
+
+      # Unsigned for now: on first open, right-click the app > Open > Open (or System Settings > Privacy & Security > Open Anyway).
+      - name: Make the .dmg
+        run: |
+          source scripts/retry.sh
+          source scripts/create_dmg.sh
+          mkdir -p build/dmg
+          cp -R build/arm64/OrcaSlicer/OrcaSlicer.app "build/dmg/UB Slicer.app"
+          codesign --force --deep --sign - "build/dmg/UB Slicer.app"
+          ln -sfn /Applications build/dmg/Applications
+          create_dmg "UB Slicer" build/dmg "UB_Slicer_Mac_AppleChip_V${ver}.dmg"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: UB_Slicer_Mac_AppleChip_V${{ env.ver }}
+          path: UB_Slicer_Mac_AppleChip_V*.dmg
+
+  release:
+    name: Publish release (tags only)
+    if: ${{ always() && startsWith(github.ref, 'refs/tags/v') && needs.windows.result == 'success' }}
+    needs: [windows, mac]
+    # runs when the Windows build passed; the Mac file is included when it was built
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" out/* --repo "${{ github.repository }}" \
+            --title "UB Slicer ${{ github.ref_name }}" \
+            --notes "Windows installer, Windows portable zip and Mac (Apple chip) .dmg. Based on OrcaSlicer."

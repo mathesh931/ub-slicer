@@ -3,7 +3,7 @@
     "name": "0.20mm Numakers petg hs lynx 320 @Unbound3D",
     "inherits": "0.20mm Standard @Unbound3D",
     "from": "system",
-    "setting_id": "GP013",
+    "setting_id": "HMox4uFmIFHlDIHA",
     "instantiation": "true",
     "default_acceleration": "4000",
     "gap_infill_speed": "150",

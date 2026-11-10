@@ -1,6 +1,14 @@
-#include <catch2/catch.hpp>
-#include <test_utils.hpp>
+#include <algorithm>
+#include <catch2/catch_all.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include "test_utils.hpp"
 
+#include "libslic3r/Geometry/Voronoi.hpp"
+#include "libslic3r/Point.hpp"
+#include "libslic3r/Line.hpp"
+#include <cmath>
+#include <cstddef>
+#include "libslic3r/BoundingBox.hpp"
 #include <libslic3r/Polygon.hpp>
 #include <libslic3r/Polyline.hpp>
 #include <libslic3r/EdgeGrid.hpp>
@@ -9,17 +17,17 @@
 #include <libslic3r/Geometry/VoronoiOffset.hpp>
 #include <libslic3r/Geometry/VoronoiVisualUtils.hpp>
 
+#include "libslic3r/libslic3r.h"
+#include <math.h>
 #include <numeric>
+#include <random>
+#include <vector>
 
 // #define VORONOI_DEBUG_OUT
 
 #ifdef VORONOI_DEBUG_OUT
 #include <libslic3r/VoronoiVisualUtils.hpp>
 #endif
-
-using boost::polygon::voronoi_builder;
-using boost::polygon::voronoi_diagram;
-using boost::polygon::construct_voronoi;
 
 using namespace Slic3r;
 
@@ -70,7 +78,7 @@ TEST_CASE("Voronoi missing edges - points 12067", "[Voronoi]")
         vd, pts, Lines());
 #endif
 
-//    REQUIRE(closest_point.z() == Approx(1.));
+//    REQUIRE(closest_point.z() == Catch::Approx(1.));
 }
 
 // https://svn.boost.org/trac10/ticket/12707
@@ -341,7 +349,7 @@ TEST_CASE("Voronoi division by zero 12903", "[Voronoi]")
 // Funny sample from a dental industry?
 // Vojtech confirms this test fails and rightly so, because the input data contain self intersections.
 // This test is suppressed.
-TEST_CASE("Voronoi NaN coordinates 12139", "[Voronoi][!hide][!mayfail]")
+TEST_CASE("Voronoi NaN coordinates 12139", "[Voronoi][.][!mayfail]")
 {
     Lines lines = {
         { {  260500,1564400 }, { 261040,1562960 } },

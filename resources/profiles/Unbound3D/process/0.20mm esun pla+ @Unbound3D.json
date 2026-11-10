@@ -3,7 +3,7 @@
     "name": "0.20mm esun pla+ @Unbound3D",
     "inherits": "0.20mm Standard @Unbound3D",
     "from": "system",
-    "setting_id": "GP008",
+    "setting_id": "Wq30O9TcGRUHIXER",
     "instantiation": "true",
     "brim_type": "outer_only",
     "default_acceleration": "4000",
