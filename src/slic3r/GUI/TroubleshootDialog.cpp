@@ -250,6 +250,7 @@ TroubleshootDialog::TroubleshootDialog()
     wiki_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Circle);
     wiki_btn->SetCanFocus(false);
     wiki_btn->Bind(wxEVT_LEFT_DOWN, ([wiki_url](auto& e) {wxLaunchDefaultBrowser(wiki_url);}));
+    wiki_btn->Hide(); // UB Slicer: no Orca help link
 
     auto video_btn = new Button(this, "", "toolbar_video_guide", 0, 15);
     auto video_url = "https://www.youtube.com/watch?v=CFzt8W7OCx0";
@@ -257,6 +258,7 @@ TroubleshootDialog::TroubleshootDialog()
     video_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Circle);
     video_btn->SetCanFocus(false);
     video_btn->Bind(wxEVT_LEFT_DOWN, ([video_url](auto& e) {wxLaunchDefaultBrowser(video_url);}));
+    video_btn->Hide(); // UB Slicer: no Orca video
 
     // RIGHT SIZER //////////////////////
 

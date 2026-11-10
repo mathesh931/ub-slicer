@@ -219,6 +219,7 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
             wxGetApp().app_config->set("play_slicing_video", "false");
         }));
 
+        wiki_btn->Hide(); video_btn->Hide(); // UB Slicer: no Orca help links
         button_sizer->Add(wiki_btn , 0, wxLEFT, horizontal_margin + FromDIP(3));
         button_sizer->Add(video_btn, 0, wxLEFT, FromDIP(10));
 
