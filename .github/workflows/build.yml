@@ -124,6 +124,8 @@ jobs:
           pip3 install --break-system-packages "cmake~=4.3.0" || pip3 install "cmake~=4.3.0"
           echo "ver=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)" >> "$GITHUB_ENV"
           mkdir -p deps/build/${{ matrix.arch }}
+          # Intel Macs: Homebrew's own image libraries in /usr/local would be picked up instead of ours
+          if [ "${{ matrix.arch }}" = x86_64 ]; then brew unlink libpng jpeg-turbo libtiff freetype zstd webp openssl@3 2>/dev/null || true; fi
 
       - name: Restore built libraries
         id: deps
