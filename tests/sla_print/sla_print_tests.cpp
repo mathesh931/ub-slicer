@@ -1,14 +1,37 @@
+#include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/SLA/IndexedMesh.hpp"
+#include "libslic3r/SLA/SupportTree.hpp"
+#include "libslic3r/SLA/SupportPointGenerator.hpp"
+#include "libslic3r/MTUtils.hpp"
+#include "libslic3r/ExPolygon.hpp"
+#include "libslic3r/SLA/SupportPoint.hpp"
+#include "libslic3r/Point.hpp"
+#include <cstddef>
+#include "libslic3r/SLA/Pad.hpp"
+#include "libslic3r/SLA/RasterBase.hpp"
+#include "libslic3r/SLA/AGGRaster.hpp"
+#include <cstdlib>
+#include "libslic3r/SLA/SupportTreeBuilder.hpp"
+#include "libslic3r/Execution/Execution.hpp"
+#include "libslic3r/Execution/ExecutionTBB.hpp"
 #include <unordered_set>
 #include <unordered_map>
 #include <random>
 #include <numeric>
 #include <cstdint>
 
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_approx.hpp>
 #include "sla_test_utils.hpp"
+#include "test_utils.hpp"
 
 #include <libslic3r/TriangleMeshSlicer.hpp>
 #include <libslic3r/SLA/SupportTreeMesher.hpp>
-#include <libslic3r/SLA/Concurrency.hpp>
+#include <vector>
+#include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/ExtrusionEntity.hpp"
+
+using namespace Slic3r;
 
 namespace {
 
@@ -159,14 +182,14 @@ TEST_CASE("FloorSupportsDoNotPierceModel", "[SLASupportGeneration]") {
 
 TEST_CASE("InitializedRasterShouldBeNONEmpty", "[SLARasterOutput]") {
     // Default SL1 display parameters
-    sla::RasterBase::Resolution res{2560, 1440};
-    sla::RasterBase::PixelDim   pixdim{120. / res.width_px, 68. / res.height_px};
+    sla::Resolution res{2560, 1440};
+    sla::PixelDim   pixdim{120. / res.width_px, 68. / res.height_px};
     
     sla::RasterGrayscaleAAGammaPower raster(res, pixdim, {}, 1.);
     REQUIRE(raster.resolution().width_px == res.width_px);
     REQUIRE(raster.resolution().height_px == res.height_px);
-    REQUIRE(raster.pixel_dimensions().w_mm == Approx(pixdim.w_mm));
-    REQUIRE(raster.pixel_dimensions().h_mm == Approx(pixdim.h_mm));
+    REQUIRE(raster.pixel_dimensions().w_mm == Catch::Approx(pixdim.w_mm));
+    REQUIRE(raster.pixel_dimensions().h_mm == Catch::Approx(pixdim.h_mm));
 }
 
 TEST_CASE("MirroringShouldBeCorrect", "[SLARasterOutput]") {
@@ -186,8 +209,8 @@ TEST_CASE("MirroringShouldBeCorrect", "[SLARasterOutput]") {
 
 TEST_CASE("RasterizedPolygonAreaShouldMatch", "[SLARasterOutput]") {
     double disp_w = 120., disp_h = 68.;
-    sla::RasterBase::Resolution res{2560, 1440};
-    sla::RasterBase::PixelDim pixdim{disp_w / res.width_px, disp_h / res.height_px};
+    sla::Resolution res{2560, 1440};
+    sla::PixelDim pixdim{disp_w / res.width_px, disp_h / res.height_px};
     
     double gamma = 1.;
     sla::RasterGrayscaleAAGammaPower raster(res, pixdim, {}, gamma);
@@ -229,7 +252,7 @@ TEST_CASE("halfcone test", "[halfcone]") {
     indexed_triangle_set m = sla::get_mesh(br, 45);
 
     its_merge_vertices(m);
-    its_write_obj(m, "Halfcone.obj");
+    write_debug_obj("sla_print/Halfcone.obj", m);
 }
 
 TEST_CASE("Test concurrency")
@@ -240,5 +263,5 @@ TEST_CASE("Test concurrency")
 
     double s = execution::accumulate(ex_tbb, vals.begin(), vals.end(), 0.);
 
-    REQUIRE(s == Approx(ref));
+    REQUIRE(s == Catch::Approx(ref));
 }

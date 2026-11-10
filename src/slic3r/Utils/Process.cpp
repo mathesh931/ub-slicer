@@ -1,5 +1,6 @@
 #include "Process.hpp"
 
+#include <cstdlib>
 #include <libslic3r/AppConfig.hpp>
 
 #include "../GUI/GUI.hpp"
@@ -13,6 +14,11 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
+#include <vector>
+#include <string>
+#include <wx/utils.h>
+#include <wx/filedlg.h>
+#include <wx/string.h>
 
 // For starting another OrcaSlicer instance on OSX.
 // Fails to compile on Windows on the build server.
@@ -21,6 +27,7 @@
     #include <boost/process/args.hpp>
 #endif
 
+#include <wx/filename.h>
 #include <wx/stdpaths.h>
 
 namespace Slic3r {
@@ -39,7 +46,7 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 	wxString path;
 	wxFileName::SplitPath(wxStandardPaths::Get().GetExecutablePath(), &path, nullptr, nullptr, wxPATH_NATIVE);
 	path += "\\";
-	path += (instance_type == NewSlicerInstanceType::Slicer) ? "ub-slicer.exe" : "bambu-gcodeviewer.exe";
+	path += (instance_type == NewSlicerInstanceType::Slicer) ? "orca-slicer.exe" : "bambu-gcodeviewer.exe";
 	std::vector<const wchar_t*> args;
 	args.reserve(4);
 	args.emplace_back(path.wc_str());

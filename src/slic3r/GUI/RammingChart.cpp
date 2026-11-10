@@ -1,12 +1,19 @@
 // Orca: This file is ported from latest PrusaSlicer
 
 #include <algorithm>
+#include <wx/colour.h>
+#include <wx/chartype.h>
+#include <vector>
+#include <cmath>
+#include <utility>
 #include <wx/dcbuffer.h>
+#include <wx/event.h>
+#include <wx/string.h>
+#include <wx/gdicmn.h>
 
 #include "RammingChart.hpp"
-#include "GUI.hpp"
-#include "GUI_App.hpp"
 #include "I18N.hpp"
+#include "Widgets/StateColor.hpp"
 
 wxDEFINE_EVENT(EVT_WIPE_TOWER_CHART_CHANGED, wxCommandEvent);
 
@@ -53,7 +60,7 @@ void Chart::draw() {
     }
     
     // draw draggable buttons
-    dc.SetBrush(StateColor::darkModeColorFor(wxColour("#333333"))); // orca color for draggable circles
+    dc.SetBrush(StateColor::darkModeColorFor(wxColour("#009688"))); // orca color for draggable circles
     dc.SetPen(wxPen(StateColor::darkModeColorFor(wxColour("#363636")), 1));
     for (auto& button : m_buttons)
         //dc.DrawRectangle(math_to_screen(button.get_pos())-wxPoint(side/2.,side/2.), wxSize(side,side));
@@ -89,10 +96,10 @@ void Chart::draw() {
     }
     
     // axis labels:
-    wxString label = _(L("Time")) + " (" + _("s") + ")";
+    wxString label = _(L("Time")) + " (" + _(L("s")) + ")";
     dc.GetTextExtent(label,&text_width,&text_height);
     dc.DrawText(label,wxPoint(0.5*(m_rect.GetRight()+m_rect.GetLeft())-text_width/2.f, m_rect.GetBottom()+0.6*legend_side));
-    label = _(L("Volumetric speed")) + " (" + wxString::FromUTF8("mm³/s") + ")";
+    label = _(L("Volumetric speed")) + " (" + _(L(u8"mm³/s")) + ")";
     dc.GetTextExtent(label,&text_width,&text_height);
     dc.DrawRotatedText(label,wxPoint(0,0.5*(m_rect.GetBottom()+m_rect.GetTop())+text_width/2.f),90);
 

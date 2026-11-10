@@ -11,46 +11,34 @@
 #include "libslic3r/BuildVolume.hpp"
 #include "libslic3r/Geometry/ConvexHull.hpp"
 
+#include <Eigen/Core>
+#include <algorithm>
+#include <Eigen/Geometry>
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <vector>
+#include "libslic3r/Point.hpp"
+#include <cstddef>
+#include <cassert>
+#include <cfloat>
+#include <utility>
+#include "libslic3r/AppConfig.hpp"
+#include <cstdint>
+#include <string>
+#include <exception>
+#include "slic3r/GUI/OpenGLManager.hpp"
+#include "libslic3r/BoundingBox.hpp"
+#include <limits>
+#include "libslic3r/Geometry/Circle.hpp"
+#include <cmath>
+#include <math.h>
+#include <cstdlib>
+#include "libslic3r/Geometry.hpp"
 
-#if ENABLE_SMOOTH_NORMALS
-#include <igl/per_face_normals.h>
-#include <igl/per_corner_normals.h>
-#include <igl/per_vertex_normals.h>
-#endif // ENABLE_SMOOTH_NORMALS
-
-#include <GL/glew.h>
+#include <glad/gl.h>
 
 namespace Slic3r {
 namespace GUI {
-
-#if ENABLE_SMOOTH_NORMALS
-static void smooth_normals_corner(const TriangleMesh& mesh, std::vector<stl_normal>& normals)
-{
-    using MapMatrixXfUnaligned = Eigen::Map<const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>>;
-    using MapMatrixXiUnaligned = Eigen::Map<const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>>;
-
-    std::vector<Vec3f> face_normals = its_face_normals(mesh.its);
-
-    Eigen::MatrixXd vertices = MapMatrixXfUnaligned(mesh.its.vertices.front().data(),
-        Eigen::Index(mesh.its.vertices.size()), 3).cast<double>();
-    Eigen::MatrixXi indices = MapMatrixXiUnaligned(mesh.its.indices.front().data(),
-        Eigen::Index(mesh.its.indices.size()), 3);
-    Eigen::MatrixXd in_normals = MapMatrixXfUnaligned(face_normals.front().data(),
-        Eigen::Index(face_normals.size()), 3).cast<double>();
-    Eigen::MatrixXd out_normals;
-
-    igl::per_corner_normals(vertices, indices, in_normals, 1.0, out_normals);
-
-    normals = std::vector<stl_normal>(mesh.its.vertices.size());
-    for (size_t i = 0; i < mesh.its.indices.size(); ++i) {
-        for (size_t j = 0; j < 3; ++j) {
-            normals[mesh.its.indices[i][j]] = out_normals.row(i * 3 + j).cast<float>();
-        }
-    }
-}
-#endif // ENABLE_SMOOTH_NORMALS
 
 void GLModel::Geometry::add_vertex(const Vec2f& position)
 {
@@ -455,17 +443,33 @@ void GLModel::init_from(const indexed_triangle_set& its)
     data.reserve_vertices(3 * its.indices.size());
     data.reserve_indices(3 * its.indices.size());
 
-    // vertices + indices
-    unsigned int vertices_counter = 0;
-    for (uint32_t i = 0; i < its.indices.size(); ++i) {
-        const stl_triangle_vertex_indices face = its.indices[i];
-        const stl_vertex                  vertex[3] = { its.vertices[face[0]], its.vertices[face[1]], its.vertices[face[2]] };
-        const stl_vertex                  n = face_normal_normalized(vertex);
-        for (size_t j = 0; j < 3; ++j) {
-            data.add_vertex(vertex[j], n);
+    // CLI thumbnail generation can initialize models without a wx application.
+    const bool smooth_normals_enabled = wxApp::GetInstance() != nullptr && wxGetApp().app_config != nullptr &&
+                                        wxGetApp().app_config->get_bool(SETTING_OPENGL_PHONG_SMOOTH_NORMALS);
+
+    if (smooth_normals_enabled) {
+        const std::vector<Vec3f> corner_normals = its_smooth_corner_normals(its, 5.0);
+
+        unsigned int vertices_counter = 0;
+        for (uint32_t i = 0; i < its.indices.size(); ++i) {
+            const stl_triangle_vertex_indices face = its.indices[i];
+            for (size_t j = 0; j < 3; ++j)
+                data.add_vertex(its.vertices[face[j]], corner_normals[3 * i + j]);
+            data.add_triangle(vertices_counter, vertices_counter + 1, vertices_counter + 2);
+            vertices_counter += 3;
         }
-        vertices_counter += 3;
-        data.add_triangle(vertices_counter - 3, vertices_counter - 2, vertices_counter - 1);
+    } else {
+        //Original flat (per-face) normals
+        unsigned int vertices_counter = 0;
+        for (uint32_t i = 0; i < its.indices.size(); ++i) {
+            const stl_triangle_vertex_indices face = its.indices[i];
+            const stl_vertex vertex[3] = {its.vertices[face[0]], its.vertices[face[1]], its.vertices[face[2]]};
+            const stl_vertex n = face_normal_normalized(vertex);
+            for (size_t j = 0; j < 3; ++j)
+                data.add_vertex(vertex[j], n);
+            data.add_triangle(vertices_counter, vertices_counter + 1, vertices_counter + 2);
+            vertices_counter += 3;
+        }
     }
 
     // update bounding box
@@ -551,6 +555,16 @@ void GLModel::reset()
         glsafe(::glDeleteBuffers(1, &m_render_data.vbo_id));
         m_render_data.vbo_id = 0;
     }
+#if !SLIC3R_OPENGL_ES
+    if (OpenGLManager::get_gl_info().is_core_profile()) {
+#endif // !SLIC3R_OPENGL_ES
+        if (m_render_data.vao_id > 0) {
+            glsafe(::glDeleteVertexArrays(1, &m_render_data.vao_id));
+            m_render_data.vao_id = 0;
+        }
+#if !SLIC3R_OPENGL_ES
+    }
+#endif // !SLIC3R_OPENGL_ES
 
     m_render_data.vertices_count = 0;
     m_render_data.indices_count  = 0;
@@ -586,12 +600,12 @@ static GLenum get_index_type(const GLModel::Geometry& data)
     }
 }
 
-void GLModel::render()
+void GLModel::render(GLShaderProgram* shader)
 {
-    render(std::make_pair<size_t, size_t>(0, indices_count()));
+    render(std::make_pair<size_t, size_t>(0, indices_count()), shader);
 }
 
-void GLModel::render(const std::pair<size_t, size_t>& range)
+void GLModel::render(const std::pair<size_t, size_t>& range, GLShaderProgram* shader)
 {
     if (m_render_disabled)
         return;
@@ -599,7 +613,9 @@ void GLModel::render(const std::pair<size_t, size_t>& range)
     if (range.second == range.first)
         return;
 
-    GLShaderProgram* shader = wxGetApp().get_current_shader();
+    if (shader == nullptr && wxApp::GetInstance() != nullptr)
+        shader = wxGetApp().get_current_shader();
+
     if (shader == nullptr)
         return;
 
@@ -619,6 +635,14 @@ void GLModel::render(const std::pair<size_t, size_t>& range)
     const bool normal = Geometry::has_normal(data.format);
     const bool tex_coord = Geometry::has_tex_coord(data.format);
 
+#if !SLIC3R_OPENGL_ES
+    if (OpenGLManager::get_gl_info().is_core_profile()) {
+#endif // !SLIC3R_OPENGL_ES
+        glsafe(::glBindVertexArray(m_render_data.vao_id));
+#if !SLIC3R_OPENGL_ES
+    }
+#endif // !SLIC3R_OPENGL_ES
+    // the following binding is needed to set the vertex attributes
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_render_data.vbo_id));
 
     int position_id = -1;
@@ -661,6 +685,13 @@ void GLModel::render(const std::pair<size_t, size_t>& range)
         glsafe(::glDisableVertexAttribArray(position_id));
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+#if !SLIC3R_OPENGL_ES
+    if (OpenGLManager::get_gl_info().is_core_profile()) {
+#endif // !SLIC3R_OPENGL_ES
+        glsafe(::glBindVertexArray(0));
+#if !SLIC3R_OPENGL_ES
+    }
+#endif // !SLIC3R_OPENGL_ES
 }
 
 void GLModel::render_instanced(unsigned int instances_vbo, unsigned int instances_count)
@@ -688,6 +719,14 @@ void GLModel::render_instanced(unsigned int instances_vbo, unsigned int instance
         if (!send_to_gpu())
             return;
     }
+
+#if !SLIC3R_OPENGL_ES
+    if (OpenGLManager::get_gl_info().is_core_profile()) {
+#endif // !SLIC3R_OPENGL_ES
+        glsafe(::glBindVertexArray(m_render_data.vao_id));
+#if !SLIC3R_OPENGL_ES
+    }
+#endif // !SLIC3R_OPENGL_ES
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, instances_vbo));
     const size_t instance_stride = 5 * sizeof(float);
@@ -735,6 +774,13 @@ void GLModel::render_instanced(unsigned int instances_vbo, unsigned int instance
     glsafe(::glDisableVertexAttribArray(offset_id));
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+#if !SLIC3R_OPENGL_ES
+    if (OpenGLManager::get_gl_info().is_core_profile()) {
+#endif // !SLIC3R_OPENGL_ES
+        glsafe(::glBindVertexArray(0));
+#if !SLIC3R_OPENGL_ES
+    }
+#endif // !SLIC3R_OPENGL_ES
 }
 
 bool GLModel::send_to_gpu()
@@ -749,6 +795,15 @@ bool GLModel::send_to_gpu()
         assert(false);
         return false;
     }
+
+#if !SLIC3R_OPENGL_ES
+    if (OpenGLManager::get_gl_info().is_core_profile()) {
+#endif // !SLIC3R_OPENGL_ES
+        glsafe(::glGenVertexArrays(1, &m_render_data.vao_id));
+        glsafe(::glBindVertexArray(m_render_data.vao_id));
+#if !SLIC3R_OPENGL_ES
+    }
+#endif // !SLIC3R_OPENGL_ES
 
     // vertices
     glsafe(::glGenBuffers(1, &m_render_data.vbo_id));
@@ -789,6 +844,14 @@ bool GLModel::send_to_gpu()
     }
     m_render_data.indices_count = indices_count;
     data.indices = std::vector<unsigned int>();
+
+#if !SLIC3R_OPENGL_ES
+    if (OpenGLManager::get_gl_info().is_core_profile()) {
+#endif // !SLIC3R_OPENGL_ES
+        glsafe(::glBindVertexArray(0));
+#if !SLIC3R_OPENGL_ES
+    }
+#endif // !SLIC3R_OPENGL_ES
 
     return true;
 }

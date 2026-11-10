@@ -1,8 +1,15 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
+#include <cmath>
 #include <iostream>
 #include <boost/filesystem.hpp>
+#include "libslic3r/libslic3r.h"
+#include <vector>
+#include "libslic3r/Polygon.hpp"
+#include <math.h>
 
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_approx.hpp>
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/ExPolygon.hpp"
 #include "libslic3r/SVG.hpp"
@@ -22,7 +29,7 @@ SCENARIO("Constant offset", "[ClipperUtils]") {
 		WHEN("Slic3r::offset()") {
 			for (double miter : { 2.0, 1.5, 1.2 }) {
 				DYNAMIC_SECTION("plus 1mm, miter " << miter << "x") {
-					output = Slic3r::offset(box20mm, 1. * s, ClipperLib::jtMiter, miter);
+					output = Slic3r::offset(box20mm, 1. * s, jtMiter, miter);
 #ifdef TESTS_EXPORT_SVGS
 					{
 						SVG svg(debug_out_path("constant_offset_box20mm_plus1mm_miter%lf.svg", miter).c_str(), get_extents(output));
@@ -32,11 +39,11 @@ SCENARIO("Constant offset", "[ClipperUtils]") {
 #endif
 					THEN("Area is 22^2mm2") {
 						REQUIRE(output.size() == 1);
-						REQUIRE(output.front().area() == Approx(22. * 22. * s * s));
+						REQUIRE(output.front().area() == Catch::Approx(22. * 22. * s * s));
 					}
 				}
 				DYNAMIC_SECTION("minus 1mm, miter " << miter << "x") {
-					output = Slic3r::offset(box20mm, - 1. * s, ClipperLib::jtMiter, miter);
+					output = Slic3r::offset(box20mm, - 1. * s, jtMiter, miter);
 #ifdef TESTS_EXPORT_SVGS
 					{
 						SVG svg(debug_out_path("constant_offset_box20mm_minus1mm_miter%lf.svg", miter).c_str(), get_extents(output));
@@ -46,7 +53,7 @@ SCENARIO("Constant offset", "[ClipperUtils]") {
 #endif
 					THEN("Area is 18^2mm2") {
 						REQUIRE(output.size() == 1);
-						REQUIRE(output.front().area() == Approx(18. * 18. * s * s));
+						REQUIRE(output.front().area() == Catch::Approx(18. * 18. * s * s));
 					}
 				}
 			}
@@ -64,7 +71,7 @@ SCENARIO("Constant offset", "[ClipperUtils]") {
 #endif
 					THEN("Area is 22^2mm2") {
 						REQUIRE(output.size() == 1);
-						REQUIRE(output.front().area() == Approx(22. * 22. * s * s));
+						REQUIRE(output.front().area() == Catch::Approx(22. * 22. * s * s));
 					}
 				}
 				DYNAMIC_SECTION("minus 1mm, miter " << miter << "x") {
@@ -78,7 +85,7 @@ SCENARIO("Constant offset", "[ClipperUtils]") {
 #endif
 					THEN("Area is 18^2mm2") {
 						REQUIRE(output.size() == 1);
-						REQUIRE(output.front().area() == Approx(18. * 18. * s * s));
+						REQUIRE(output.front().area() == Catch::Approx(18. * 18. * s * s));
 					}
 				}
 			}
@@ -96,7 +103,7 @@ SCENARIO("Constant offset", "[ClipperUtils]") {
 			for (double miter : { 2.0, 1.5, 1.2 }) {
 				DYNAMIC_SECTION("miter " << miter << "x") {
 					WHEN("plus 1mm") {
-						output = Slic3r::offset_ex(box20mm, 1. * s, ClipperLib::jtMiter, miter);
+						output = Slic3r::offset_ex(box20mm, 1. * s, jtMiter, miter);
 #ifdef TESTS_EXPORT_SVGS
 						{
 							SVG svg(debug_out_path("constant_offset_box20mm_10mm_hole_plus1mm_miter%lf.svg", miter).c_str(), get_extents(output));
@@ -106,11 +113,11 @@ SCENARIO("Constant offset", "[ClipperUtils]") {
 #endif
 						THEN("Area is 22^2-8^2 mm2") {
 							REQUIRE(output.size() == 1);
-							REQUIRE(output.front().area() == Approx((22. * 22. - 8. * 8.) * s * s));
+							REQUIRE(output.front().area() == Catch::Approx((22. * 22. - 8. * 8.) * s * s));
 						}
 					}
 					WHEN("minus 1mm") {
-						output = Slic3r::offset_ex(box20mm, - 1. * s, ClipperLib::jtMiter, miter);
+						output = Slic3r::offset_ex(box20mm, - 1. * s, jtMiter, miter);
 #ifdef TESTS_EXPORT_SVGS
 						{
 							SVG svg(debug_out_path("constant_offset_box20mm_10mm_hole_minus1mm_miter%lf.svg", miter).c_str(), get_extents(output));
@@ -120,7 +127,7 @@ SCENARIO("Constant offset", "[ClipperUtils]") {
 #endif
 						THEN("Area is 18^2-12^2 mm2") {
 							REQUIRE(output.size() == 1);
-							REQUIRE(output.front().area() == Approx((18. * 18. - 12. * 12.) * s * s));
+							REQUIRE(output.front().area() == Catch::Approx((18. * 18. - 12. * 12.) * s * s));
 						}
 					}
 				}
@@ -140,7 +147,7 @@ SCENARIO("Constant offset", "[ClipperUtils]") {
 #endif
 						THEN("Area is 22^2-8^2 mm2") {
 							REQUIRE(output.size() == 1);
-							REQUIRE(output.front().area() == Approx((22. * 22. - 8. * 8.) * s * s));
+							REQUIRE(output.front().area() == Catch::Approx((22. * 22. - 8. * 8.) * s * s));
 						}
 					}
 					WHEN("minus 1mm") {
@@ -154,7 +161,7 @@ SCENARIO("Constant offset", "[ClipperUtils]") {
 #endif
 						THEN("Area is 18^2-12^2 mm2") {
 							REQUIRE(output.size() == 1);
-							REQUIRE(output.front().area() == Approx((18. * 18. - 12. * 12.) * s * s));
+							REQUIRE(output.front().area() == Catch::Approx((18. * 18. - 12. * 12.) * s * s));
 						}
 					}
 				}
@@ -176,7 +183,7 @@ SCENARIO("Constant offset", "[ClipperUtils]") {
 		SECTION("Slic3r::offset()") {
 			for (double miter : { 2.0, 1.5, 1.2 }) {
 				DYNAMIC_SECTION("Outer offset 1mm, miter " << miter << "x") {
-					output = Slic3r::offset(triangle20mm, offset * s, ClipperLib::jtMiter, 2.0);
+					output = Slic3r::offset(triangle20mm, offset * s, jtMiter, 2.0);
 #ifdef TESTS_EXPORT_SVGS
 					{
 						SVG svg(debug_out_path("constant_offset_triangle20mm_plus1mm_miter%lf.svg", miter).c_str(), get_extents(output));
@@ -186,7 +193,7 @@ SCENARIO("Constant offset", "[ClipperUtils]") {
 #endif
 					THEN("Area matches") {
 						REQUIRE(output.size() == 1);
-						REQUIRE(output.front().area() == Approx(area_offsetted));
+						REQUIRE(output.front().area() == Catch::Approx(area_offsetted));
 					}
 				}
 			}
@@ -205,7 +212,7 @@ SCENARIO("Constant offset", "[ClipperUtils]") {
 #endif
 					THEN("Area matches") {
 						REQUIRE(output.size() == 1);
-						REQUIRE(output.front().area() == Approx(area_offsetted));
+						REQUIRE(output.front().area() == Catch::Approx(area_offsetted));
 					}
 				}
 			}

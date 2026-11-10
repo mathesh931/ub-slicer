@@ -1,12 +1,23 @@
 #include "SideButton.hpp"
 #include "Label.hpp"
 
+#include <vector>
+#include "slic3r/GUI/Widgets/StateHandler.hpp"
+#include <wx/colour.h>
+#include <wx/dc.h>
 #include <wx/dcclient.h>
 #include <wx/dcgraph.h>
+#include <wx/string.h>
+#include <wx/stattext.h>
+#include <wx/gdicmn.h>
+#include <wx/event.h>
+#include "slic3r/GUI/Widgets/StateColor.hpp"
+#include "slic3r/GUI/wxExtensions.hpp"
 
 BEGIN_EVENT_TABLE(SideButton, wxWindow)
 EVT_LEFT_DOWN(SideButton::mouseDown)
 EVT_LEFT_UP(SideButton::mouseReleased)
+EVT_MOUSE_CAPTURE_LOST(SideButton::mouseCaptureLost)
 EVT_PAINT(SideButton::paintEvent)
 END_EVENT_TABLE()
 
@@ -22,16 +33,14 @@ SideButton::SideButton(wxWindow* parent, wxString text, wxString icon, long stly
     extra_size = wxSize(38, 10);
     text_margin = 15;
 #endif
-    
+
     icon_offset = 0;
     text_orientation = HO_Left;
-    
-
 
     border_color.append(0x6B6B6B, StateColor::Disabled);
-    border_color.append(wxColour(26, 26, 26), StateColor::Pressed);
-    border_color.append(wxColour(74, 74, 74), StateColor::Hovered);
-    border_color.append(0x333333, StateColor::Normal);
+    border_color.append(wxColour(0, 137, 123), StateColor::Pressed);
+    border_color.append(wxColour(38, 166, 154), StateColor::Hovered);
+    border_color.append(0x009688, StateColor::Normal);
     border_color.setTakeFocusedAsHovered(false);
 
     text_color.append(0xACACAC, StateColor::Disabled);
@@ -40,12 +49,12 @@ SideButton::SideButton(wxWindow* parent, wxString text, wxString icon, long stly
     text_color.append(0xFEFEFE, StateColor::Normal);
 
     background_color.append(0x6B6B6B, StateColor::Disabled);
-    background_color.append(wxColour(26, 26, 26), StateColor::Pressed);
-    background_color.append(wxColour(74, 74, 74), StateColor::Hovered);
-    background_color.append(0x333333, StateColor::Normal);
+    background_color.append(wxColour(0, 137, 123), StateColor::Pressed);
+    background_color.append(wxColour(38, 166, 154), StateColor::Hovered);
+    background_color.append(0x009688, StateColor::Normal);
     background_color.setTakeFocusedAsHovered(false);
 
-    SetBottomColour(wxColour("#2B2B2B"));
+    SetBottomColour(wxColour("#3B4446"));
 
     state_handler.attach({ &border_color, &text_color, &background_color });
     state_handler.update_binds();
@@ -208,7 +217,7 @@ void SideButton::dorender(wxDC& dc, wxDC& text_dc)
     dc.SetPen(wxPen(border_color.colorForStates(states)));
     int pen_width = dc.GetPen().GetWidth();
 
-    
+
     // draw icon style
     if (icon.bmp().IsOk()) {
         if (radius > 1e-5) {
@@ -280,11 +289,11 @@ void SideButton::dorender(wxDC& dc, wxDC& text_dc)
     auto text = GetLabel();
     if (!text.IsEmpty()) {
         pt.y += (rcContent.height - textSize.y) / 2;
-
         text_dc.SetFont(GetFont());
         text_dc.SetTextForeground(text_color.colorForStates(states));
         text_dc.DrawText(text, pt);
     }
+
 }
 
 void SideButton::messureSize()
@@ -323,18 +332,28 @@ void SideButton::mouseDown(wxMouseEvent& event)
     event.Skip();
     pressedDown = true;
     SetFocus();
-    CaptureMouse();
+    // Capturing twice pushes this button onto the capture stack twice, and the
+    // release would then hand the capture straight back to it.
+    if (!HasCapture())
+        CaptureMouse();
 }
 
 void SideButton::mouseReleased(wxMouseEvent& event)
 {
     event.Skip();
+    // A press whose release went elsewhere still holds the capture.
+    if (HasCapture())
+        ReleaseMouse();
     if (pressedDown) {
         pressedDown = false;
-        ReleaseMouse();
         if (wxRect({0, 0}, GetSize()).Contains(event.GetPosition()))
             sendButtonEvent();
     }
+}
+
+void SideButton::mouseCaptureLost(wxMouseCaptureLostEvent&)
+{
+    pressedDown = false;
 }
 
 void SideButton::sendButtonEvent()

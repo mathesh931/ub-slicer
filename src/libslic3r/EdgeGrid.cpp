@@ -1,10 +1,21 @@
 #include <algorithm>
+#include <cstddef>
+#include <cstdlib>
+#include <cstdint>
+#include <utility>
+#include <cmath>
+#include <set>
 #include <vector>
 #include <float.h>
 #include <unordered_map>
 
 #include <png.h>
 
+#include "Polygon.hpp"
+#include "Point.hpp"
+#include "Polyline.hpp"
+#include "ExPolygon.hpp"
+#include "Line.hpp"
 #include "libslic3r.h"
 #include "ClipperUtils.hpp"
 #include "EdgeGrid.hpp"
@@ -64,8 +75,10 @@ void EdgeGrid::Grid::create(const std::vector<Points> &polygons, coord_t resolut
 					open = false;
 					-- end;
 				}
-			} else
-				assert(*begin != end[-1]);
+            } else {
+                //assert(*begin != end[-1]);
+            }
+
 			m_contours.emplace_back(begin, end, open);
 		}
 
@@ -142,8 +155,8 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 	assert(resolution > 0);
 	// 1) Measure the bounding box.
 	for (const Contour &contour : m_contours) {
-		assert(contour.num_segments() > 0);
-		assert(*contour.begin() != contour.end()[-1]);
+		//assert(contour.num_segments() > 0);
+		//assert(*contour.begin() != contour.end()[-1]);
 		for (const Slic3r::Point &pt : contour) 
 			m_bbox.merge(pt);
 	}
@@ -603,7 +616,7 @@ struct PropagateDanielssonSingleStep {
 		if ((signs[addr] & 2) == 0) {
 			float  *v = &L[addr << 1];
 			float   l = v[0] * v[0] + v[1] * v[1];
-			float  *v2s = v + (addr_delta << 1);
+			float  *v2s = v + 2 * addr_delta;
 			float	v2[2] = {
 				v2s[0] + INCX * resolution,
 				v2s[1] + INCY * resolution

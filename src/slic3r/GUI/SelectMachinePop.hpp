@@ -1,13 +1,21 @@
 #ifndef slic3r_GUI_SelectMachinePop_hpp_
 #define slic3r_GUI_SelectMachinePop_hpp_
 
+#include <wx/event.h>
+#include <wx/dc.h>
+#include <cstddef>
+#include "slic3r/GUI/Widgets/HyperLink.hpp"
+#include <vector>
+#include <memory>
+#include <string>
+#include <map>
+#include "slic3r/GUI/Widgets/TextInput.hpp"
 #include <wx/wx.h>
 #include <wx/intl.h>
 #include <wx/collpane.h>
 #include <wx/dataview.h>
 #include <wx/artprov.h>
 #include <wx/xrc/xmlres.h>
-#include <wx/dataview.h>
 #include <wx/gdicmn.h>
 #include <wx/font.h>
 #include <wx/colour.h>
@@ -20,7 +28,6 @@
 #include <wx/dialog.h>
 #include <wx/popupwin.h>
 #include <wx/spinctrl.h>
-#include <wx/artprov.h>
 #include <wx/wrapsizer.h>
 #include <wx/srchctrl.h>
 
@@ -71,7 +78,7 @@ wxDECLARE_EVENT(EVT_BIND_MACHINE, wxCommandEvent);
 #define SELECT_MACHINE_GREY900 wxColour(38, 46, 48)
 #define SELECT_MACHINE_GREY600 wxColour(144, 144, 144)
 #define SELECT_MACHINE_GREY400 wxColour(206, 206, 206)
-#define SELECT_MACHINE_BRAND wxColour(51, 51, 51)
+#define SELECT_MACHINE_BRAND wxColour(0, 150, 136)
 #define SELECT_MACHINE_REMIND wxColour(255, 111, 0)
 #define SELECT_MACHINE_LIGHT_GREEN wxColour(219, 253, 231)
 
@@ -180,16 +187,14 @@ private:
     PinCodePanel*                     m_panel_ping_code{nullptr};
     PinCodePanel*                     m_panel_direct_connection{nullptr};
     wxWindow*                         m_placeholder_panel{nullptr};
-    wxHyperlinkCtrl*                  m_hyperlink{nullptr};
-    Label*                            m_ping_code_text{nullptr};
-    wxStaticBitmap*                   m_img_ping_code{nullptr};
-    wxBoxSizer *                      m_sizer_body{nullptr};
+    HyperLink*                        m_hyperlink{nullptr}; // ORCA
     wxBoxSizer *                      m_sizer_my_devices{nullptr};
     wxBoxSizer *                      m_sizer_other_devices{nullptr};
+#if defined(__WINDOWS__)
     wxBoxSizer *                      m_sizer_search_bar{nullptr};
+#endif
     wxSearchCtrl*                     m_search_bar{nullptr};
     wxScrolledWindow *                m_scrolledWindow{nullptr};
-    wxWindow *                        m_panel_body{nullptr};
     wxTimer *                         m_refresh_timer{nullptr};
     std::vector<MachinePanel*>        m_user_list_machine_panel;
     std::vector<MachinePanel*>        m_other_list_machine_panel;
