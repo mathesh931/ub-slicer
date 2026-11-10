@@ -125,7 +125,7 @@ jobs:
           echo "ver=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)" >> "$GITHUB_ENV"
           mkdir -p deps/build/${{ matrix.arch }}
           # Intel Macs: Homebrew's own image libraries in /usr/local would be picked up instead of ours
-          if [ "${{ matrix.arch }}" = x86_64 ]; then brew unlink libpng jpeg-turbo libtiff freetype zstd webp openssl@3 2>/dev/null || true; fi
+          if [ "${{ matrix.arch }}" = x86_64 ]; then for f in libpng jpeg-turbo libtiff freetype zstd webp openssl@3; do brew unlink $f 2>/dev/null || true; done; ls /usr/local/include | grep -i png || true; fi
 
       - name: Restore built libraries
         id: deps
