@@ -29,6 +29,7 @@ env:
 jobs:
   windows:
     name: Windows installer
+    if: false # mac-build-try branch: Mac only
     runs-on: windows-latest
     timeout-minutes: 330
     steps:
@@ -104,10 +105,13 @@ jobs:
           path: build/UB_Slicer_Windows_*_portable.zip
 
   mac:
-    name: Mac app (Apple chip)
-    # Mac build minutes count 10x on private repositories: the Mac app is built once the repository is public.
+    name: Mac app (Apple chip) ${{ matrix.os }}
     if: ${{ !github.event.repository.private }}
-    runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-14, macos-26]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 330
     steps:
       - uses: actions/checkout@v5
@@ -124,7 +128,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: deps/build/arm64/OrcaSlicer_dep
-          key: macos-arm64-deps-${{ hashFiles('deps/**') }}
+          key: ${{ matrix.os }}-arm64-deps-${{ hashFiles('deps/**') }}
 
       - name: Build libraries (first time only)
         if: steps.deps.outputs.cache-hit != 'true'
@@ -161,7 +165,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: UB_Slicer_Mac_AppleChip_V${{ env.ver }}
+          name: UB_Slicer_Mac_AppleChip_V${{ env.ver }}_${{ matrix.os }}
           path: UB_Slicer_Mac_AppleChip_V*.dmg
 
   release:
