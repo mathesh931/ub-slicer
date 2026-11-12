@@ -2948,14 +2948,13 @@ wxMenu* MainFrame::generate_help_menu()
     //        //TODO
     //    });
     // Check New Version
-#if 0 // UB Slicer: no Orca update check
+    // UB Slicer: checks UB Slicer's own releases on GitHub
     append_menu_item(helpMenu, wxID_ANY, _L("Check for Updates"), _L("Check for Updates"),
         [](wxCommandEvent&) {
             wxGetApp().check_new_version_sf(true, 1);
         }, "", nullptr, []() {
             return true;
         });
-#endif
 
     // About
 #ifndef __APPLE__

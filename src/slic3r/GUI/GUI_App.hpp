@@ -196,6 +196,7 @@ public:
     std::string version_name;
     std::string description;
     std::string url;
+    std::string installer_url; // UB Slicer: Windows installer of the new version (from the GitHub release)
     bool        force_upgrade{ false };
     int      ver_items[VERSION_LEN];  // AA.BB.CC.DD
     VersionInfo() {
@@ -610,6 +611,9 @@ public:
     void            check_update(bool show_tips, int by_user);
     void            check_new_version(bool show_tips = false, int by_user = 0);
     void            check_new_version_sf(bool show_tips = false, int by_user = 0);
+#ifdef _WIN32
+    void            ub_download_and_install(const std::string& url, const std::string& version);
+#endif
     // Offers to migrate user filament presets made against an older release that lost printers their parent
     // listed then. At startup it asks on every start that finds such presets, unless the user chose not to be
     // reminded; while the user presets sync with the cloud, it waits until they have been pulled. by_user also

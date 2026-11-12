@@ -315,7 +315,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
 
     // Store builds get updates from the Microsoft Store: wxID_YES opens the Store
     // product page there (see the EVT_SLIC3R_VERSION_ONLINE handler) instead of GitHub.
-    auto github_link = new HyperLink(this, is_running_in_msix() ? _L("Check on Microsoft Store") : _L("Check on GitHub"), "", LB_AUTO_WRAP);
+    auto github_link = new HyperLink(this, is_running_in_msix() ? _L("Check on Microsoft Store") : _L("See all versions"), "", LB_AUTO_WRAP);
     github_link->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         EndModal(wxID_YES);
     });
@@ -365,7 +365,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
 
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
-    m_button_download = new Button(this, is_running_in_msix() ? _L("Open Microsoft Store") : _L("Download"));
+    m_button_download = new Button(this, is_running_in_msix() ? _L("Open Microsoft Store") : _L("Update now"));
     m_button_download->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
 
     m_button_download->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {

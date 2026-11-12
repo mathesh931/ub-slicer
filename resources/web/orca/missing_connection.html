@@ -11,32 +11,128 @@
 <script type="text/javascript" src="../homepage/js/json2.js"></script>
 <script type="text/javascript" src="../homepage/js/globalapi.js"></script>
 <script type="text/javascript" src="../homepage/js/home.js"></script>
-<!-- UB Slicer: written steps instead of Orca's recorded animation -->
+<!-- UB Slicer: Unbound's own connection guide (animated demo + written steps) instead of Orca's recording -->
 <style>
-  .container { text-align: left; max-width: 560px; }
+  body { overflow-y: auto; }
+  .ub { max-width: 860px; margin: 0 auto; padding: 28px 24px 40px; text-align: left; }
   h1 { margin: 0 0 6px; font-size: 22px; }
-  .lead { margin: 0 0 18px; opacity: .8; }
+  .lead { margin: 0 0 20px; opacity: .8; }
+
+  /* ---- animated demo ---- */
+  .demo { position: relative; display: flex; gap: 28px; align-items: center; justify-content: center;
+          padding: 22px; border-radius: 14px; background: rgba(127,127,127,.08); border: 1px solid rgba(127,127,127,.2); }
+  .printer { position: relative; width: 200px; flex: none; text-align: center; }
+  .printer img { width: 200px; border-radius: 10px; display: block; }
+  .badge { position: absolute; left: 50%; bottom: -12px; transform: translateX(-50%); white-space: nowrap;
+           font-size: 12px; padding: 4px 10px; border-radius: 999px; background: #fff; color: #333; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+  .badge .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #9e9e9e; margin-right: 6px; }
+  .badge.on .dot { background: #2e9d4f; }
+  .screen { position: absolute; top: 42%; left: 50%; transform: translate(-50%,-50%); font: 11px monospace;
+            background: rgba(0,0,0,.75); color: #fff; padding: 4px 8px; border-radius: 6px; opacity: 0; transition: opacity .4s; }
+  .screen.show { opacity: 1; }
+
+  .app { width: 340px; min-height: 300px; flex: none; border-radius: 10px; background: #fff; color: #333; box-shadow: 0 6px 24px rgba(0,0,0,.25);
+         overflow: hidden; font-size: 13px; position: relative; }
+  .bar { background: #2b2b2b; color: #fff; padding: 6px 10px; font-size: 12px; }
+  .row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid #eee; }
+  .wifi { width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: background .2s; }
+  .wifi.hit { background: #dadada; }
+  .dlg { padding: 10px 12px; display: none; }
+  .dlg.show { display: block; }
+  .f { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+  .f span { width: 120px; flex: none; color: #555; }
+  .f b { flex: 1; min-height: 20px; border: 1px solid #ccc; border-radius: 4px; padding: 2px 6px; font-weight: normal; font-family: monospace; background: #fafafa; }
+  .f b.typing { border-color: #333; }
+  .btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+  .btn { padding: 4px 14px; border-radius: 5px; background: #e6e6e6; transition: background .2s; }
+  .btn.dark { background: #333; color: #fff; }
+  .btn.hit { background: #4a4a4a; color: #fff; }
+  .toast { margin-top: 8px; color: #2e9d4f; font-weight: bold; opacity: 0; transition: opacity .3s; }
+  .toast.show { opacity: 1; }
+  .cursor { position: absolute; width: 16px; height: 16px; border-radius: 50%; background: rgba(51,51,51,.55);
+            border: 2px solid #fff; pointer-events: none; transition: left .7s ease, top .7s ease, transform .15s; z-index: 5; }
+  .cursor.click { transform: scale(.7); }
+  .caption { text-align: center; margin: 14px 0 0; min-height: 20px; font-weight: bold; }
+
+  /* ---- written steps ---- */
+  h2 { font-size: 16px; margin: 26px 0 10px; }
   ol { margin: 0; padding-left: 0; list-style: none; counter-reset: step; }
-  li { counter-increment: step; display: flex; gap: 12px; margin: 0 0 14px; line-height: 1.45; }
-  li::before { content: counter(step); flex: none; width: 26px; height: 26px; border-radius: 50%; background: #333333; color: #fff;
-               font-weight: bold; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  li { counter-increment: step; display: flex; gap: 12px; margin: 0 0 12px; line-height: 1.45; }
+  li::before { content: counter(step); flex: none; width: 24px; height: 24px; border-radius: 50%; background: #333333; color: #fff;
+               font-weight: bold; font-size: 13px; display: flex; align-items: center; justify-content: center; }
   .icon { width: 18px; height: 18px; vertical-align: -4px; }
   code { background: rgba(127,127,127,.18); padding: 1px 6px; border-radius: 4px; }
-  .note { margin: 6px 0 0; font-size: 13px; opacity: .75; }
+  .note { margin: 6px 0 0; font-size: 13px; opacity: .8; }
+  @media (max-width: 640px) { .demo { flex-direction: column; } }
 </style>
 </head>
-<body onLoad="OnInit()">
-    <div class="container">
-        <h1 data-i18n="printer_connection">Printer Connection</h1>
-        <p class="lead">Connect UB Slicer to your Unbound printer to see it here and send prints straight to it.</p>
-        <ol>
-            <li><span>On the <b>Prepare</b> tab, click the connection icon <img class="icon" src="../../images/monitor_signal_strong.svg" alt=""> next to your printer's name.</span></li>
-            <li><span><b>Host Type:</b> choose <code>Octo/Klipper</code>.</span></li>
-            <li><span><b>Hostname, IP or URL:</b> type your printer's address, for example <code>192.168.1.50</code> (shown on the printer's screen).</span></li>
-            <li><span><b>API Key / Password:</b> leave it empty on your own network.</span></li>
-            <li><span>Click <b>Test</b>, then <b>OK</b>. Your printer appears on this tab.</span></li>
-        </ol>
-        <p class="note">Printing through UBconnect from anywhere? Use the address and key shown in UBconnect instead.</p>
+<body onLoad="OnInit(); ubDemo();">
+  <div class="ub">
+    <h1 data-i18n="printer_connection">Printer Connection</h1>
+    <p class="lead">Connect UB Slicer to your Unbound printer to see it here and send prints straight to it.</p>
+
+    <div class="demo" id="demo">
+      <div class="printer">
+        <img src="hercules.jpg" alt="Unbound3D Hercules">
+        <div class="screen" id="ip">IP 192.168.1.50</div>
+        <div class="badge" id="badge"><span class="dot"></span><span id="badgeText">Not connected</span></div>
+      </div>
+      <div class="app" id="app">
+        <div class="bar">UB Slicer · Prepare</div>
+        <div class="row"><span>Printer: <b>Unbound3D Hercules</b></span>
+          <span class="wifi" id="wifi"><img class="icon" src="../../images/monitor_signal_strong.svg" alt=""></span></div>
+        <div class="dlg" id="dlg">
+          <div style="font-weight:bold;margin-bottom:4px">Physical Printer</div>
+          <div class="f"><span>Save Machine as</span><b id="t0"></b></div>
+          <div class="f"><span>Host Type</span><b id="t1"></b></div>
+          <div class="f"><span>Hostname, IP or URL</span><b id="t2"></b></div>
+          <div class="f"><span>API Key / Password</span><b id="t3"></b></div>
+          <div class="btns"><span class="btn" id="test">Test</span><span class="btn dark" id="ok">OK</span></div>
+          <div class="toast" id="toast">✓ Connection works</div>
+        </div>
+      </div>
+      <div class="cursor" id="cur" style="left:60%;top:85%"></div>
     </div>
+    <p class="caption" id="cap">&nbsp;</p>
+
+    <h2>Connect your printer</h2>
+    <ol>
+      <li><span>Find the printer's address: on the printer's touch screen open <b>Menu → System</b> (or <b>Network</b>) and note the <b>IP</b>, for example <code>192.168.1.50</code>.</span></li>
+      <li><span>On the <b>Prepare</b> tab, choose your printer (e.g. <b>Unbound3D Hercules</b>) and click the connection icon <img class="icon" src="../../images/monitor_signal_strong.svg" alt=""> next to <b>Printer</b>.</span></li>
+      <li><span><b>Save Machine as:</b> a name you will recognise, e.g. <code>Hercules - Office</code>. <b>Host Type:</b> <code>Octo/Klipper</code>.</span></li>
+      <li><span><b>Hostname, IP or URL:</b> the printer's IP. <b>API Key / Password:</b> leave empty on your own network.</span></li>
+      <li><span>Click <b>Test</b>, then <b>OK</b>. The printer appears in the printer list and on this tab.</span></li>
+    </ol>
+    <p class="note">The computer must be on the same network as the printer. If <b>Test</b> fails, try the IP with <code>:7125</code> at the end.</p>
+    <p class="note">Printing through <b>UBconnect</b> from anywhere? Fill in the three boxes shown in UBconnect → Print from Orca instead.</p>
+  </div>
+
+<script>
+function ubDemo() {
+  var $ = function (id) { return document.getElementById(id); };
+  var demo = $('demo'), cur = $('cur'), cap = $('cap');
+  var vals = ['Hercules - Office', 'Octo/Klipper', '192.168.1.50', ''];
+  function at(el) { var d = demo.getBoundingClientRect(), r = el.getBoundingClientRect();
+    cur.style.left = (r.left - d.left + r.width / 2 - 8) + 'px'; cur.style.top = (r.top - d.top + r.height / 2 - 8) + 'px'; }
+  function click(el) { el.classList.add('hit'); cur.classList.add('click');
+    setTimeout(function () { el.classList.remove('hit'); cur.classList.remove('click'); }, 300); }
+  function type(el, text, done) { var i = 0; el.classList.add('typing');
+    (function next() { el.textContent = text.slice(0, i); if (i++ < text.length) setTimeout(next, 70); else { el.classList.remove('typing'); done(); } })(); }
+  function reset() { $('dlg').classList.remove('show'); $('toast').classList.remove('show'); $('ip').classList.remove('show');
+    $('badge').classList.remove('on'); $('badgeText').textContent = 'Not connected';
+    for (var i = 0; i < 4; i++) $('t' + i).textContent = ''; }
+  var steps = [
+    function (n) { reset(); cap.textContent = '1. Read the IP on the printer screen'; $('ip').classList.add('show'); at($('ip')); setTimeout(n, 1800); },
+    function (n) { cap.textContent = '2. Click the connection icon next to the printer'; at($('wifi')); setTimeout(function () { click($('wifi')); $('dlg').classList.add('show'); setTimeout(n, 700); }, 800); },
+    function (n) { cap.textContent = '3. Give it a name and choose Octo/Klipper'; at($('t0')); type($('t0'), vals[0], function () { at($('t1')); type($('t1'), vals[1], n); }); },
+    function (n) { cap.textContent = '4. Type the printer’s IP'; at($('t2')); type($('t2'), vals[2], function () { setTimeout(n, 400); }); },
+    function (n) { cap.textContent = '5. Test, then OK'; at($('test')); setTimeout(function () { click($('test')); $('toast').classList.add('show');
+      setTimeout(function () { at($('ok')); setTimeout(function () { click($('ok')); n(); }, 800); }, 900); }, 800); },
+    function (n) { cap.textContent = 'Connected: the printer shows here and Print sends to it'; $('dlg').classList.remove('show');
+      $('badge').classList.add('on'); $('badgeText').textContent = 'Connected · Hercules - Office'; at($('badge')); setTimeout(n, 3000); }
+  ];
+  var k = 0; (function run() { steps[k](function () { k = (k + 1) % steps.length; setTimeout(run, 300); }); })();
+}
+</script>
 </body>
 </html>
