@@ -57,4 +57,5 @@ UB Slicer 2.5 starts from an exact copy of OrcaSlicer **v2.5.0** (commit `40ecc6
 | `resources/data/hints.ini` | Orca `documentation_link` lines removed |
 | `src/slic3r/GUI/Preferences.cpp` (`#if 0 // UB Slicer`) | Preferences: no Plugins section, no login region / stealth / login panel, no Cloud Providers, Update & sync or Bambu network plug-in |
 | `resources/profiles/Unbound3D/` (Hercules) | Hercules printer from Unbound's own profile (`Unbound 3D Hercules.orca_printer`); Unbound filaments and processes point to it; Lynx-only ones removed; `Unbound3D.json` version 02.05.01.00 so older copies in settings folders are replaced |
-| `resources/profiles/Unbound3D/Unbound3D Hercules_cover.png` | Hercules photo on the printer card |
+| `resources/profiles/Unbound3D/Unbound3D Hercules_cover.png` | Hercules drawing (made from Unbound's photo) on the printer card |
+| `src/slic3r/GUI/UBPrinterPicker.{cpp,hpp}` (new), `resources/web/ubslicer/printer_picker.html` (new), `src/slic3r/GUI/Plater.cpp` (`UBPrinterPicker::open` on the printer box), `src/slic3r/CMakeLists.txt`, `localization/i18n/list.txt` | clicking the printer box opens a picker over the blurred window: animated printer drawings with the name below, instead of the drop-down list |
