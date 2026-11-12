@@ -47,7 +47,7 @@ UB Slicer 2.5 starts from an exact copy of OrcaSlicer **v2.5.0** (commit `40ecc6
 | `src/libslic3r/AppConfig.cpp` (`stealth_mode`), `resources/web/homepage/index.html` (`LoginArea` hidden) | no Orca/Bambu cloud |
 | `resources/images/OrcaSlicer_horizontal_{light,dark}.svg` | Unbound logo (Troubleshoot window) |
 | `resources/profiles/Unbound3D/**` | brought to Orca 2.5's profile rules with `scripts/orca_profile_tool.py fix-variant / generate-id / normalize / update-index --vendor Unbound3D` (values unchanged) |
-| `src/slic3r/GUI/MainFrame.cpp` (`#if 0 // UB Slicer`) | no "Sync Presets" (OrcaCloud), no "Plugins" (Orca plugin store); Help → Check for Updates checks UB Slicer's releases |
+| `src/slic3r/GUI/MainFrame.cpp` (`#if 0 // UB Slicer`; `load_printer_url` without the device-manager address) | no "Sync Presets" (OrcaCloud), no "Plugins" (Orca plugin store); Help → Check for Updates checks UB Slicer's releases |
 | `src/slic3r/GUI/GUI_App.cpp` ("Profile syncing change") | no Orca Cloud profile-sync notice at start |
 | `resources/web/homepage/index.html` | no OrcaCloud and Wiki buttons on Home |
 | `OptionsGroup.cpp`, `OG_CustomCtrl.cpp`, `Preferences.cpp` (`get_url`/wiki link) | no Orca wiki link behind settings |
