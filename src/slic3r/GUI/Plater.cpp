@@ -2970,8 +2970,8 @@ Sidebar::Sidebar(Plater *parent)
             p->combo_printer->SetBackgroundColour(bg_color); // paints margins instead combo background
         };
         // UB Slicer: clicking the printer opens the printer picker (cards over the blurred window) instead of the list
-        p->combo_printer->Bind(wxEVT_LEFT_DOWN,   [this](wxMouseEvent&) { UBPrinterPicker::open(p->combo_printer); });
-        p->combo_printer->Bind(wxEVT_LEFT_DCLICK, [this](wxMouseEvent&) { UBPrinterPicker::open(p->combo_printer); });
+        p->combo_printer->Bind(wxEVT_LEFT_DOWN,   [this](wxMouseEvent& e) { if (!UBPrinterPicker::open(p->combo_printer)) e.Skip(); });
+        p->combo_printer->Bind(wxEVT_LEFT_DCLICK, [this](wxMouseEvent& e) { if (!UBPrinterPicker::open(p->combo_printer)) e.Skip(); });
         p->combo_printer->Bind(wxEVT_SET_FOCUS,  [printer_focus_bg](auto& e) {printer_focus_bg(true ); e.Skip();});
         p->combo_printer->Bind(wxEVT_KILL_FOCUS, [printer_focus_bg](auto& e) {printer_focus_bg(false); e.Skip();});
 

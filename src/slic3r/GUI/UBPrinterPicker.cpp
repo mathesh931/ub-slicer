@@ -53,11 +53,11 @@ std::string short_model(const std::string& model)
 
 } // namespace
 
-void UBPrinterPicker::open(PlaterPresetComboBox* combo)
+bool UBPrinterPicker::open(PlaterPresetComboBox* combo)
 {
     wxWindow* frame = wxGetApp().mainframe;
     if (combo == nullptr || frame == nullptr || !combo->IsEnabled())
-        return;
+        return false;
 
     // One card per printer in the list (printer models and the user's own printers), as in the drop-down list.
     PresetBundle&       bundle   = *wxGetApp().preset_bundle;
@@ -71,6 +71,18 @@ void UBPrinterPicker::open(PlaterPresetComboBox* combo)
         if (preset_name.empty())
             preset_name = into_u8(combo->GetString(i));
         const Preset* preset = bundle.printers.find_preset(preset_name);
+        if (preset == nullptr) {
+            // Printer models are listed by model name ("Unbound3D Hercules", "*" in front when edited)
+            std::string model_name = preset_name;
+            if (!model_name.empty() && model_name.rfind(Preset::suffix_modified(), 0) == 0)
+                model_name = model_name.substr(Preset::suffix_modified().size());
+            for (const Preset& candidate : bundle.printers)
+                if (candidate.is_system && candidate.is_visible && candidate.config.has("printer_model") &&
+                    candidate.config.opt_string("printer_model") == model_name) {
+                    preset = &candidate;
+                    break;
+                }
+        }
         if (preset == nullptr)
             continue;
         const std::string model     = preset->config.has("printer_model") ? preset->config.opt_string("printer_model") : std::string();
@@ -92,7 +104,7 @@ void UBPrinterPicker::open(PlaterPresetComboBox* combo)
                          {"cover", cover_url(bundle, model)}});
     }
     if (cards.empty())
-        return;
+        return false; // the caller shows the normal list
 
     // The main window as it looks now: the page blurs it in, so the picker seems to rise over the window.
     const wxPoint top_left = frame->ClientToScreen(wxPoint(0, 0));
@@ -127,7 +139,7 @@ void UBPrinterPicker::open(PlaterPresetComboBox* combo)
     {
         UBPrinterPicker dialog(frame, wxRect(top_left, size), shot, from_u8("ubInit(" + data.dump() + ");"));
         if (dialog.m_web == nullptr)
-            return;
+            return false;
         dialog.ShowModal();
         pick = dialog.m_pick;
     }
@@ -141,6 +153,7 @@ void UBPrinterPicker::open(PlaterPresetComboBox* combo)
         event.SetString(combo->GetString(pick));
         combo->GetEventHandler()->ProcessEvent(event);
     }
+    return true;
 }
 
 UBPrinterPicker::UBPrinterPicker(wxWindow* frame, const wxRect& screen_rect, const wxBitmap& shot, const wxString& init_script)

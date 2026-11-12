@@ -19,7 +19,8 @@ class PlaterPresetComboBox;
 class UBPrinterPicker : public wxDialog
 {
 public:
-    static void open(PlaterPresetComboBox* combo);
+    // false if the picker could not be shown (the caller then shows the normal list)
+    static bool open(PlaterPresetComboBox* combo);
 
 private:
     UBPrinterPicker(wxWindow* frame, const wxRect& screen_rect, const wxBitmap& shot, const wxString& init_script);

@@ -4661,7 +4661,9 @@ void MainFrame::load_printer_url()
         return;
 
     auto     cfg = preset_bundle.printers.get_edited_preset().config;
-    if (cfg.opt_string("print_host").empty()) {
+    // UB Slicer: the Device tab shows only the printer connected to the selected printer (else the
+    // connection steps), never an address remembered from another printer
+    if (false && cfg.opt_string("print_host").empty()) {
         if (auto *device_manager = wxGetApp().getDeviceManager()) {
             auto *machine = device_manager->get_selected_machine();
             if (!machine) {
