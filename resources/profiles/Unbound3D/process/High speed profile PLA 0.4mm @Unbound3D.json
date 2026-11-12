@@ -37,6 +37,6 @@
 	"wipe_on_loops": "1",
 	"xy_hole_compensation": "0.2",
 	"compatible_printers": [
-		"Unbound3D Lynx 350 0.4 nozzle"
+		"Unbound3D Hercules 0.4 nozzle"
 	]
 }

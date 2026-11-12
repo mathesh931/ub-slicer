@@ -22,6 +22,6 @@
     "travel_acceleration": "3000",
     "wall_loops": "5",
     "compatible_printers": [
-        "Unbound3D Lynx 320 0.4 nozzle"
+        "Unbound3D Hercules 0.4 nozzle"
     ]
 }

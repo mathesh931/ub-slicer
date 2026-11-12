@@ -15,6 +15,6 @@
     "top_surface_acceleration": "800",
     "travel_acceleration": "3000",
     "compatible_printers": [
-        "Unbound3D Lynx 320 0.4 nozzle"
+        "Unbound3D Hercules 0.4 nozzle"
     ]
 }

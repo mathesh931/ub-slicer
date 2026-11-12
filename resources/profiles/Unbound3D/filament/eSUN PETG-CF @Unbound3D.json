@@ -10,8 +10,7 @@
 		"1"
 	],
 	"compatible_printers": [
-		"Unbound3D Lynx 320 0.4 nozzle",
-		"Unbound3D Lynx 350 0.4 nozzle"
+		"Unbound3D Hercules 0.4 nozzle"
 	],
 	"complete_print_exhaust_fan_speed": [
 		"100"

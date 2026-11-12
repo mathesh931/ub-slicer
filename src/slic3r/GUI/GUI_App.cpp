@@ -10165,9 +10165,9 @@ void GUI_App::window_pos_center(wxTopLevelWindow *window)
 bool GUI_App::config_wizard_startup()
 {
     if (!m_app_conf_exists || preset_bundle->printers.only_default_printers()) {
-        // UB Slicer: the Unbound3D Lynx 350 is already ticked in the setup screen
+        // UB Slicer: the Unbound3D Hercules is already ticked in the setup screen
         if (app_config->vendors().empty())
-            app_config->set_variant("Unbound3D", "Unbound3D Lynx 350", "0.4", true);
+            app_config->set_variant("Unbound3D", "Unbound3D Hercules", "0.4", true);
         BOOST_LOG_TRIVIAL(info) << "run wizard...";
         run_wizard(RunReason::RR_DATA_EMPTY);
         BOOST_LOG_TRIVIAL(info) << "finished run wizard";

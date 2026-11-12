@@ -13,8 +13,7 @@
 		"1"
 	],
 	"compatible_printers": [
-		"Unbound3D Lynx 320 0.4 nozzle",
-		"Unbound3D Lynx 350 0.4 nozzle"
+		"Unbound3D Hercules 0.4 nozzle"
 	],
 	"cool_plate_temp": [
 		"60"
