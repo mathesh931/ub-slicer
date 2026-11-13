@@ -230,6 +230,7 @@ void AMSMaterialsSetting::create()
     m_wiki_ctrl->SetStyle(ButtonStyle::Confirm, ButtonType::Circle);
     m_wiki_ctrl->SetCanFocus(false);
     m_wiki_ctrl->Bind(wxEVT_LEFT_DOWN, ([wiki_url](auto& e) {wxLaunchDefaultBrowser(wiki_url);}));
+    m_wiki_ctrl->Hide(); // UB Slicer: no Orca help link
 
     m_button_confirm = new Button(this, _L("Confirm"));
     m_button_confirm->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);

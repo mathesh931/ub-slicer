@@ -26,6 +26,6 @@
 	"wall_sequence": "inner-outer-inner wall",
 	"wipe_speed": "0",
 	"compatible_printers": [
-		"Unbound3D Lynx 350 0.4 nozzle"
+		"Unbound3D Hercules 0.4 nozzle"
 	]
 }

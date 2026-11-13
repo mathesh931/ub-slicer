@@ -623,6 +623,7 @@ std::vector<NativeCommand> build_command_catalog()
         Slic3r::GUI::about();
         return AppActionRunResult{AppActionRunResult::Level::Success};
     });
+#if 0 // UB Slicer: no Orca wiki, YouTube or plugin store
     add_with_icon("open_wiki", L("Open Wiki"), L("Help"), "link_wiki_img", [](const std::string&) {
         wxLaunchDefaultBrowser("https://www.orcaslicer.com/wiki/", wxBROWSER_NEW_WINDOW);
         return AppActionRunResult{AppActionRunResult::Level::Success};
@@ -650,6 +651,7 @@ std::vector<NativeCommand> build_command_catalog()
         return AppActionRunResult{AppActionRunResult::Level::Success};
     });
 
+#endif
     return out;
 }
 

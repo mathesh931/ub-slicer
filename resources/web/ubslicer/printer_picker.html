@@ -1,0 +1,174 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Select printer</title>
+<!-- UB Slicer: printer picker shown over the blurred window when the printer box is clicked (UBPrinterPicker.cpp) -->
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; font-family: "Segoe UI", -apple-system, Arial, sans-serif;
+               user-select: none; -webkit-user-select: none; }
+  .bg { position: fixed; inset: -24px; background: center / cover no-repeat; }
+  .bg.go { animation: blurIn .45s ease-out forwards; }
+  @keyframes blurIn { from { filter: blur(0) brightness(1); } to { filter: blur(16px) brightness(.55); } }
+  body.out .bg { animation: blurOut .22s ease-in forwards; }
+  @keyframes blurOut { from { filter: blur(16px) brightness(.55); } to { filter: blur(0) brightness(1); } }
+  .wrap { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .panel { max-width: calc(100% - 80px); max-height: calc(100% - 60px); overflow: auto; padding: 34px 44px 28px; border-radius: 24px;
+           background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.22); box-shadow: 0 30px 80px rgba(0,0,0,.45);
+           backdrop-filter: blur(6px); color: #fff; text-align: center; opacity: 0; transform: translateY(40px) scale(.9); }
+  .go .panel { animation: pop .6s cubic-bezier(.2,1.35,.35,1) .15s forwards; }
+  @keyframes pop { to { opacity: 1; transform: none; } }
+  body.out .panel { animation: popOut .2s ease-in forwards; }
+  @keyframes popOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(20px) scale(.95); } }
+  h1 { font-size: 26px; font-weight: 600; margin: 0 0 4px; letter-spacing: .3px; }
+  .sub { opacity: .7; margin: 0 0 26px; font-size: 14px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 26px; justify-content: center; }
+  .card { width: 210px; padding: 16px 12px 14px; border-radius: 18px; background: linear-gradient(180deg,#fff,#eef0f3); color: #262E30;
+          position: relative; cursor: pointer; opacity: 0; transform: translateY(30px); transition: transform .25s, box-shadow .25s; }
+  .go .card { animation: rise .55s cubic-bezier(.2,1.3,.4,1) forwards; }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  .card:hover { transform: translateY(-8px) scale(1.03); box-shadow: 0 18px 40px rgba(0,0,0,.35); }
+  .card.sel { box-shadow: 0 0 0 3px #fff, 0 0 0 6px #333; }
+  .dark .card { background: linear-gradient(180deg,#3a3a3c,#2b2b2d); color: #eee; }
+  .dark .card.sel { box-shadow: 0 0 0 3px #2b2b2d, 0 0 0 6px #ddd; }
+  .check { position: absolute; top: 10px; right: 10px; width: 24px; height: 24px; border-radius: 50%; background: #333; color: #fff; font-size: 14px;
+           display: flex; align-items: center; justify-content: center; transform: scale(0); }
+  .go .check { animation: chk .35s .9s cubic-bezier(.2,1.6,.4,1) forwards; }
+  @keyframes chk { to { transform: scale(1); } }
+  .cname { font-size: 13px; margin-top: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .kind { font-size: 11px; opacity: .55; }
+  .hint { margin-top: 22px; opacity: .55; font-size: 12px; }
+  .pic { height: 215px; display: flex; align-items: center; justify-content: center; }
+  .pic img { max-width: 186px; max-height: 210px; object-fit: contain; }
+  /* printer drawing and its animation */
+  .herc { width: 190px; height: 215px; display: block; }
+  .herc .head { animation: move 3.2s ease-in-out infinite; }
+  @keyframes move { 0%, 100% { transform: translateX(62px); } 50% { transform: translateX(138px); } }
+  .herc .bed { animation: down 6.4s linear infinite; }
+  @keyframes down { 0% { transform: translateY(-8px); } 100% { transform: translateY(0); } }
+  .herc .part rect { transform-origin: 100px 146px; animation: grow 6.4s linear infinite; }
+  @keyframes grow { 0% { transform: scaleY(.05); } 100% { transform: scaleY(1); } }
+  .herc .led { animation: led 2.4s ease-in-out infinite; }
+  @keyframes led { 50% { opacity: .55; } }
+  .herc .name { animation: nm 2s ease-in-out infinite; }
+  @keyframes nm { 50% { opacity: .6; } }
+  .herc .nozzle { animation: nz .8s ease-in-out infinite; }
+  @keyframes nz { 50% { opacity: .4; } }
+  .herc .redbar { animation: rb 1.8s ease-in-out infinite; }
+  @keyframes rb { 50% { opacity: .45; } }
+  .card:not(.sel) .herc .head { animation-duration: 4s; }
+</style>
+</head>
+<body>
+<div class="bg" id="bg"></div>
+<div class="wrap" id="wrap"><div class="panel">
+  <h1 id="title">Select printer</h1>
+  <p class="sub" id="sub">Click a printer to use it</p>
+  <div class="grid" id="grid"></div>
+  <div class="hint" id="hint">Click outside or press Esc to close</div>
+</div></div>
+<template id="hercules">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 212 240" class="herc">
+  <defs>
+    <linearGradient id="inside" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4f7fb"/><stop offset=".55" stop-color="#c9d1db"/><stop offset="1" stop-color="#9aa4b1"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset=".4" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2a2a2c"/><stop offset=".5" stop-color="#1b1b1d"/><stop offset="1" stop-color="#101011"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <linearGradient id="side" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0d0d0e"/><stop offset="1" stop-color="#232325"/></linearGradient>
+    <linearGradient id="sidewin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dfe5ec"/><stop offset="1" stop-color="#8d97a4"/></linearGradient>
+    <clipPath id="win"><rect x="34" y="42" width="132" height="136" rx="4"/></clipPath>
+  </defs>
+  <ellipse cx="106" cy="228" rx="90" ry="7" fill="#000" opacity=".25"/>
+  <!-- right side (printer turned slightly left) -->
+  <g fill="#3a3a3c"><rect x="182" y="204" width="10" height="9" rx="3"/></g>
+  <polygon points="160,18 198,7 198,203 160,216" fill="url(#side)" stroke="#333" stroke-width="1"/>
+  <polygon points="166,42 192,34 192,168 166,178" fill="url(#sidewin)" opacity=".85"/>
+  <polygon points="166,42 192,34 192,168 166,178" fill="none" stroke="#0b0b0c" stroke-width="2"/>
+  <g class="redbar"><polygon points="167,54 191,47 191,52 167,59" fill="#ff3b3b" filter="url(#glow)"/></g>
+  <polygon points="20,19 160,19 198,8 58,8" fill="#2e2e31" stroke="#3a3a3c" stroke-width="1"/>
+  <g transform="translate(2,2) scale(0.88,1)">  
+  <g fill="#3a3a3c"><rect x="30" y="212" width="14" height="10" rx="3"/><rect x="156" y="212" width="14" height="10" rx="3"/></g>
+  <rect x="20" y="16" width="160" height="198" rx="8" fill="url(#body)"/>
+  <rect x="20" y="16" width="160" height="198" rx="8" fill="none" stroke="#444" stroke-width="1"/>
+  <text x="100" y="31" text-anchor="middle" font-family="Arial" font-size="7" letter-spacing="2.5" fill="#d9d9d9">UNBOUND3D</text>
+  <!-- inside -->
+  <g clip-path="url(#win)">
+    <rect x="34" y="42" width="132" height="136" fill="url(#inside)"/>
+    <g stroke="#b4bcc7" stroke-width=".6" opacity=".7">
+      <path d="M34 60 L60 74 L60 160 L34 178"/><path d="M166 60 L140 74 L140 160 L166 178"/><path d="M60 74 H140"/>
+    </g>
+    <rect class="led" x="36" y="43" width="128" height="3" rx="1.5" fill="#fff" filter="url(#glow)"/>
+    <!-- bed + print -->
+    <g class="bed">
+      <rect x="50" y="146" width="100" height="6" rx="1.5" fill="#6d737c"/>
+      <rect x="48" y="152" width="104" height="3" fill="#4a4f56"/>
+      <g class="part"><rect x="84" y="130" width="32" height="16" rx="2" fill="#2f3237"/></g>
+    </g>
+    <!-- gantry -->
+    <rect x="36" y="74" width="128" height="5" rx="2" fill="#2b2d31"/>
+    <g class="head">
+      <rect x="-10" y="68" width="20" height="22" rx="3" fill="#1e1f22"/>
+      <circle cx="0" cy="78" r="4.5" fill="#3d4046" stroke="#5c6068" stroke-width="1"/>
+      <rect x="-2.5" y="90" width="5" height="5" fill="#8a8f97"/>
+      <circle class="nozzle" cx="0" cy="97" r="2.2" fill="#ff9a3c" filter="url(#glow)"/>
+    </g>
+    <rect x="34" y="42" width="132" height="136" fill="url(#glass)"/>
+  </g>
+  <rect x="34" y="42" width="132" height="136" rx="4" fill="none" stroke="#0c0c0d" stroke-width="3"/>
+  <!-- handles -->
+  <g fill="#0f0f10" stroke="#2fd36a" stroke-width=".8"><rect x="25" y="70" width="6" height="16" rx="2"/><rect x="25" y="140" width="6" height="16" rx="2"/></g>
+  <!-- base display -->
+  <rect x="26" y="186" width="148" height="22" rx="4" fill="#0b0b0c"/>
+  <text class="name" x="100" y="201" text-anchor="middle" font-family="Consolas,monospace" font-size="9" letter-spacing="3" fill="#33e078" filter="url(#glow)">HERCULES</text>
+  </g>
+</svg>
+</template>
+<script>
+  var closing = false;
+  function send(msg) { if (window.wx && window.wx.postMessage) window.wx.postMessage(JSON.stringify(msg)); }
+  function leave(msg) {
+    if (closing) return;
+    closing = true;
+    document.body.classList.add('out');
+    setTimeout(function () { send(msg); }, 210);
+  }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  // Called by UB Slicer: {bg, dark, title, sub, hint, cards: [{i, name, kind, model, sel, cover}]}
+  function ubInit(d) {
+    if (d.dark) document.body.classList.add('dark');
+    if (d.title) document.getElementById('title').textContent = d.title;
+    if (d.sub) document.getElementById('sub').textContent = d.sub;
+    if (d.hint) document.getElementById('hint').textContent = d.hint;
+    var grid = document.getElementById('grid');
+    var tpl = document.getElementById('hercules').innerHTML;
+    d.cards.forEach(function (c, n) {
+      var el = document.createElement('div');
+      el.className = 'card' + (c.sel ? ' sel' : '');
+      el.style.animationDelay = (0.35 + n * 0.12) + 's';
+      var pic = /hercules/i.test(c.model) ? tpl : (c.cover ? '<img src="' + esc(c.cover) + '">' : tpl);
+      el.innerHTML = (c.sel ? '<div class="check">&#10003;</div>' : '') + '<div class="pic">' + pic + '</div>' +
+                     '<div class="cname">' + esc(c.name) + '</div><div class="kind">' + esc(c.kind) + '</div>';
+      el.addEventListener('click', function (e) { e.stopPropagation(); leave({ pick: c.i }); });
+      grid.appendChild(el);
+    });
+    var bg = document.getElementById('bg');
+    var start = function () { document.body.classList.add('go'); bg.classList.add('go'); send({ ready: 1 }); };
+    if (!d.bg) { start(); return; }
+    var img = new Image();
+    img.onload = function () { bg.style.backgroundImage = 'url(' + d.bg + ')'; requestAnimationFrame(start); };
+    img.onerror = start;
+    img.src = d.bg;
+  }
+  document.getElementById('wrap').addEventListener('click', function (e) { if (!e.target.closest('.panel')) leave({ close: 1 }); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') leave({ close: 1 }); });
+  document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+</script>
+</body>
+</html>

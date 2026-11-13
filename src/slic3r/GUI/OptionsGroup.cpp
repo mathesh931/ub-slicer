@@ -1413,10 +1413,10 @@ wxString OptionsGroup::get_url(const std::string& path_end)
         str = str.Left(pos) + anchor;
     }
     // Orca: point to sf wiki for seam parameters
-    return wxString::Format(L"https://www.orcaslicer.com/wiki/%s", from_u8(path_end));
+    return wxString(); // UB Slicer: no Orca online help
 }
 
-bool OptionsGroup::launch_browser(const std::string& path_end) { return wxLaunchDefaultBrowser(OptionsGroup::get_url(path_end)); }
+bool OptionsGroup::launch_browser(const std::string& path_end) { const wxString url = OptionsGroup::get_url(path_end); return !url.empty() && wxLaunchDefaultBrowser(url); }
 
 //-------------------------------------------------------------------------------------------
 // ogStaticText

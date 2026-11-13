@@ -10,8 +10,7 @@
 		"PLA"
 	],
 	"compatible_printers": [
-		"Unbound3D Lynx 320 0.4 nozzle",
-		"Unbound3D Lynx 350 0.4 nozzle"
+		"Unbound3D Hercules 0.4 nozzle"
 	],
 	"filament_settings_id": [
 		"nfill pla + glass @Unbound3D"

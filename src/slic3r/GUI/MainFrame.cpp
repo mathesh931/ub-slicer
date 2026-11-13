@@ -2948,6 +2948,7 @@ wxMenu* MainFrame::generate_help_menu()
     //        //TODO
     //    });
     // Check New Version
+    // UB Slicer: checks UB Slicer's own releases on GitHub
     append_menu_item(helpMenu, wxID_ANY, _L("Check for Updates"), _L("Check for Updates"),
         [](wxCommandEvent&) {
             wxGetApp().check_new_version_sf(true, 1);
@@ -3649,6 +3650,7 @@ void MainFrame::init_menubar_as_editor()
         },
         "", nullptr, []() { return true; }, this);
 
+#if 0 // UB Slicer: no OrcaCloud preset sync
     append_menu_item(
         top_menu, wxID_ANY, _L("Sync Presets"), _L("Pull and apply the latest presets from OrcaCloud"),
         [this](wxCommandEvent&) {
@@ -3666,14 +3668,17 @@ void MainFrame::init_menubar_as_editor()
         []() {
             return wxGetApp().is_user_login() && !wxGetApp().app_config->get_stealth_mode();
         }, this);
+#endif
 
     top_menu->AppendSeparator();
+#if 0 // UB Slicer: no Orca plugin store
     append_menu_item(
         top_menu, wxID_ANY, _L("Plugins") + "\t", "",
         [](wxCommandEvent &) {
             wxGetApp().open_plugins_dialog();
         },
         "", nullptr, []() { return true; }, this);
+#endif
 
     //m_topbar->AddDropDownMenuItem(preference_item);
     //m_topbar->AddDropDownMenuItem(printer_item);
@@ -3734,9 +3739,7 @@ void MainFrame::init_menubar_as_editor()
         [this]() {return m_plater->is_view3D_shown();; }, this);
 
     // help
-    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Calibration Guide"), _L("Calibration Guide"), [](wxCommandEvent &)
-                     { wxLaunchDefaultBrowser("https://www.orcaslicer.com/wiki/calibration_guide", wxBROWSER_NEW_WINDOW); }, "", nullptr, [this]()
-                     {return m_plater->is_view3D_shown();; }, this);
+    // UB Slicer: no Orca "Calibration Guide" link
 
 #else
     // On Mac, the Apple menu ignores non-standard custom items, so add Preset Bundle to the File menu
@@ -3753,6 +3756,7 @@ void MainFrame::init_menubar_as_editor()
         },
         "", nullptr, []() { return true; }, this);
 
+#if 0 // UB Slicer: no OrcaCloud preset sync
     append_menu_item(
         fileMenu, wxID_ANY, _L("Sync Presets"), _L("Pull and apply the latest presets from OrcaCloud"),
         [this](wxCommandEvent&) {
@@ -3770,11 +3774,14 @@ void MainFrame::init_menubar_as_editor()
         []() {
             return wxGetApp().is_user_login() && !wxGetApp().app_config->get_stealth_mode();
         }, this);
+#endif
 
     fileMenu->AppendSeparator();
+#if 0 // UB Slicer: no Orca plugin store
     append_menu_item(
         fileMenu, wxID_ANY, _L("Plugins"), "", [](wxCommandEvent&) { wxGetApp().open_plugins_dialog(); }, "", nullptr,
         []() { return true; }, this);
+#endif
 
     fileMenu->AppendSeparator();
 
@@ -3839,9 +3846,7 @@ void MainFrame::init_menubar_as_editor()
         [this](wxCommandEvent&) { run_calibration(CalibKind::VFA); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
     // help
-    append_menu_item(calib_menu, wxID_ANY, _L("Calibration Guide"), _L("Calibration Guide"),
-        [](wxCommandEvent&) { wxLaunchDefaultBrowser("https://www.orcaslicer.com/wiki/calibration_guide", wxBROWSER_NEW_WINDOW); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+    // UB Slicer: no Orca "Calibration Guide" link
 
     m_menubar->Append(calib_menu,wxString::Format("&%s", _L("Calibration")));
     if (helpMenu)
@@ -4656,7 +4661,9 @@ void MainFrame::load_printer_url()
         return;
 
     auto     cfg = preset_bundle.printers.get_edited_preset().config;
-    if (cfg.opt_string("print_host").empty()) {
+    // UB Slicer: the Device tab shows only the printer connected to the selected printer (else the
+    // connection steps), never an address remembered from another printer
+    if (false && cfg.opt_string("print_host").empty()) {
         if (auto *device_manager = wxGetApp().getDeviceManager()) {
             auto *machine = device_manager->get_selected_machine();
             if (!machine) {

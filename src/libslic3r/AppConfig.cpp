@@ -58,7 +58,7 @@ using namespace nlohmann;
 
 namespace Slic3r {
 
-static const std::string VERSION_CHECK_URL = "https://check-version.orcaslicer.com/latest";
+static const std::string VERSION_CHECK_URL = "https://api.github.com/repos/mathesh931/ub-slicer/releases?per_page=10"; // UB Slicer: its own GitHub releases
 static const std::string PROFILE_UPDATE_URL = "https://check-version.orcaslicer.com/profile";
 
 constexpr const char* CONFIG_ORCA_UPDATER_URL = "orca_updater_url";

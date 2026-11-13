@@ -1153,7 +1153,8 @@ void GUI_App::post_init()
 
     // Orca: notify users upgrading from a pre-2.4.0 version that profile syncing
     // moved from Bambu Cloud to Orca Cloud.
-    if (is_editor() && m_last_config_version && m_last_config_version->valid()
+    if (false && // UB Slicer: no Orca Cloud profile-sync notice
+        is_editor() && m_last_config_version && m_last_config_version->valid()
         && *m_last_config_version < Semver(2, 4, 0)) {
         CallAfter([] {
             const wxString wiki_url = "https://www.orcaslicer.com/wiki/user_profiles/user_profiles.html#profiles-missing-after-updating-from-bambu-cloud";
@@ -3526,6 +3527,10 @@ bool GUI_App::on_init_inner()
                         // Store builds get updates from the Microsoft Store, not the GitHub release page.
                         if (is_running_in_msix())
                             open_ms_store_product_page();
+#ifdef _WIN32
+                        else if (!version_info.installer_url.empty())
+                            ub_download_and_install(version_info.installer_url, version_info.version_str);
+#endif
                         else
                             wxLaunchDefaultBrowser(version_info.url);
                         break;
@@ -6602,22 +6607,59 @@ void maybe_attach_updater_signature(Http& http, const std::string& canonical_que
 
 } // namespace
 
+#ifdef _WIN32
+// UB Slicer: "Update now" downloads the new installer, starts it and closes UB Slicer so it can be replaced.
+// Settings are kept: they live in %APPDATA%\\UBSlicer, not in the program folder.
+void GUI_App::ub_download_and_install(const std::string& url, const std::string& version)
+{
+    const boost::filesystem::path target = boost::filesystem::temp_directory_path() / ("UB_Slicer_Setup_" + version + ".exe");
+    wxProgressDialog progress(_L("Updating UB Slicer"), _L("Downloading the new version..."), 100, mainframe,
+                              wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_ELAPSED_TIME);
+    bool        ok = false;
+    std::string error;
+    Http::get(url)
+        .on_progress([&progress](Http::Progress p, bool& cancel) {
+            if (p.dltotal > 0)
+                cancel = !progress.Update(int(p.dlnow * 99 / p.dltotal));
+            else
+                cancel = !progress.Pulse();
+        })
+        .on_error([&error](std::string, std::string err, unsigned status) { error = err.empty() ? std::to_string(status) : err; })
+        .on_complete([&ok, &error, &target](std::string body, unsigned status) {
+            if (status != 200 || body.size() < 1024 * 1024) {
+                error = "HTTP " + std::to_string(status);
+                return;
+            }
+            boost::nowide::ofstream file(target.string(), std::ios::binary);
+            file.write(body.data(), body.size());
+            ok = file.good();
+            if (!ok)
+                error = _u8L("Could not save the installer.");
+        })
+        .perform_sync();
+    progress.Hide();
+    if (!ok) {
+        if (!error.empty())
+            show_error(mainframe, format(_L("The update could not be downloaded (%1%). The download page opens instead."), error));
+        wxLaunchDefaultBrowser(version_info.url);
+        return;
+    }
+    // Start the installer, then close UB Slicer (it asks to save an unsaved project first).
+    if (wxExecute(wxString::Format("\"%s\"", from_path(target)), wxEXEC_ASYNC) > 0)
+        mainframe->Close(false);
+    else
+        wxLaunchDefaultBrowser(version_info.url);
+}
+#endif
+
 void GUI_App::check_new_version_sf(bool show_tips, int by_user)
 {
-    return; // UB Slicer: Orca's version check would offer OrcaSlicer updates; UB Slicer ships its own installers
     AppConfig* app_config = wxGetApp().app_config;
     bool       check_stable_only = app_config->get_bool("check_stable_update_only");
     auto version_check_url = app_config->version_check_url();
 
-    UpdaterQuery query{
-        detect_updater_iid(app_config),
-        detect_updater_version(),
-        platform_os_type(),
-        platform_architecture(),
-        detect_updater_os_info()
-    };
-
-    const std::string query_string = build_updater_query(query);
+    // UB Slicer: asks UB Slicer's GitHub releases; sends nothing about this computer
+    const std::string query_string;
     if (!query_string.empty()) {
         const bool has_query = version_check_url.find('?') != std::string::npos;
         if (!has_query)
@@ -6663,6 +6705,8 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
             std::string best_release_url;
             std::string best_release_content;
             std::string best_pre_content;
+            std::string best_release_installer; // UB Slicer: Windows installer of that release
+            std::string best_pre_installer;
 
             auto consider_release = [&](const boost::property_tree::ptree& node) {
                 auto tag_opt = node.get_optional<std::string>("tag_name");
@@ -6680,12 +6724,20 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
                 const bool is_prerelease = node.get_optional<bool>("prerelease").get_value_or(false);
                 const std::string html_url = node.get_optional<std::string>("html_url").get_value_or(std::string());
                 const std::string body_copy = node.get_optional<std::string>("body").get_value_or(std::string());
+                std::string installer;
+                if (auto assets = node.get_child_optional("assets"))
+                    for (const auto& asset : *assets) {
+                        const std::string asset_url = asset.second.get<std::string>("browser_download_url", "");
+                        if (boost::icontains(asset_url, "Installer") && boost::iends_with(asset_url, ".exe"))
+                            installer = asset_url;
+                    }
 
                 if (is_prerelease) {
                     if (!best_pre_valid || best_pre < tag_version) {
                         best_pre        = tag_version;
                         best_pre_url    = html_url;
                         best_pre_content = body_copy;
+                        best_pre_installer = installer;
                         best_pre_valid  = true;
                     }
                 } else {
@@ -6693,6 +6745,7 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
                         best_release         = tag_version;
                         best_release_url     = html_url;
                         best_release_content = body_copy;
+                        best_release_installer = installer;
                         best_release_valid   = true;
                     }
                 }
@@ -6715,6 +6768,7 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
                 best_pre        = best_release;
                 best_pre_url    = best_release_url;
                 best_pre_content = best_release_content;
+                best_pre_installer = best_release_installer;
                 best_pre_valid  = true;
             }
 
@@ -6738,6 +6792,7 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
             version_info.version_str   = prefer_release ? best_release.to_string_sf() : best_pre.to_string_sf();
             version_info.description   = prefer_release ? best_release_content : best_pre_content;
             version_info.force_upgrade = false;
+            version_info.installer_url = prefer_release ? best_release_installer : best_pre_installer;
 
             wxCommandEvent* evt = new wxCommandEvent(EVT_SLIC3R_VERSION_ONLINE);
             evt->SetString((prefer_release ? best_release : best_pre).to_string());
@@ -10164,9 +10219,9 @@ void GUI_App::window_pos_center(wxTopLevelWindow *window)
 bool GUI_App::config_wizard_startup()
 {
     if (!m_app_conf_exists || preset_bundle->printers.only_default_printers()) {
-        // UB Slicer: the Unbound3D Lynx 350 is already ticked in the setup screen
+        // UB Slicer: the Unbound3D Hercules is already ticked in the setup screen
         if (app_config->vendors().empty())
-            app_config->set_variant("Unbound3D", "Unbound3D Lynx 350", "0.4", true);
+            app_config->set_variant("Unbound3D", "Unbound3D Hercules", "0.4", true);
         BOOST_LOG_TRIVIAL(info) << "run wizard...";
         run_wizard(RunReason::RR_DATA_EMPTY);
         BOOST_LOG_TRIVIAL(info) << "finished run wizard";
