@@ -29,7 +29,7 @@ env:
 jobs:
   windows:
     name: Windows installer
-    if: false # mac-build-try branch: Mac only
+    if: false # mac-build-2.5 branch: Mac only (Windows is built from main)
     runs-on: windows-latest
     timeout-minutes: 330
     steps:
