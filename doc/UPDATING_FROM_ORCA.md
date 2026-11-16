@@ -21,6 +21,7 @@ UB Slicer 2.5 starts from an exact copy of OrcaSlicer **v2.5.0** (commit `40ecc6
 | File | Change |
 |---|---|
 | `version.inc` | app name "UB Slicer", app key "UBSlicer" (settings folder, translation files) |
+| `src/slic3r/GUI/BitmapCache.cpp` | black and white look: the accent `#333333` (Orca's teal) turns light `#B3B3B5` in dark mode, in both `"#333333"` and `fill:`/`stroke:` forms (else about 100 icons, the printer connection icon among them, are invisible in dark mode); the toggle keeps `#6e6e6e`; filament colours repaint `#333333` |
 | `src/libslic3r/libslic3r.h` | full name, G-code viewer name |
 | `CMakeLists.txt` | translation file name, installer (name, vendor, shortcut, registry key) |
 | `src/CMakeLists.txt`, `src/dev-utils/platform/msw/OrcaSlicer.rc.in` | `ub-slicer.exe`, file details |

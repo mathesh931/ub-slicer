@@ -351,7 +351,11 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
         replaces["\"#6B6B6B\""] = "\"#818182\"";
         replaces["\"#909090\""] = "\"#FFFFFF\"";
         replaces["\"#00FF00\""] = "\"#FF0000\"";
-        replaces["\"#333333\""] = "\"#6e6e6e\"";
+        // UB Slicer: Orca's teal accent became #333333 (black and white look); on the dark background it
+        // must turn light, in both the attribute form ("#333333") and the style form (fill:#333333)
+        replaces["\"#333333\""] = "\"#B3B3B5\"";
+        replaces["fill:#333333"] = "fill:#B3B3B5";
+        replaces["stroke:#333333"] = "stroke:#B3B3B5";
         replaces["\"#F1F1F1\""] = "\"#36363B\"";
         replaces["#DBDBDB"] = "#4A4A51"; // ORCA border color
         replaces["#F0F0F1"] = "#333337"; // ORCA disabled background color
@@ -361,7 +365,13 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
     }
 
     if (strstr(bitmap_name.c_str(), "toggle_on") != NULL && dark_mode) // ORCA only replace color of toggle button
+    {
         replaces["#333333"] = "#6e6e6e";
+        // UB Slicer: the toggle keeps its darker accent (not the light icon colour above)
+        replaces["\"#333333\""] = "\"#6e6e6e\"";
+        replaces["fill:#333333"] = "fill:#6e6e6e";
+        replaces["stroke:#333333"] = "stroke:#6e6e6e";
+    }
 
     if (!new_color.empty())
         replaces["\"#333333\""] = "\"" + new_color + "\"";
@@ -583,7 +593,7 @@ bool BitmapCache::load_from_svg_file_change_color(const std::string &filename, u
     temp_color[7]             = '\0';
     unsigned int change_color = nsvg__parseColorHex(temp_color);
     change_color |= (unsigned int) (1.0f * 255) << 24; // opacity
-    unsigned int green_color = 0xFF889600; // #333333
+    unsigned int green_color = 0xFF333333; // UB Slicer: the accent colour to repaint, #333333 (was Orca's teal)
     for (NSVGshape* shape = image->shapes; shape != nullptr; shape = shape->next) {
         // find green color
         if (shape->fill.color == green_color) {
