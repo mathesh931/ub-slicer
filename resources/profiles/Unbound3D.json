@@ -1,6 +1,6 @@
 {
 	"name": "Unbound3D",
-	"version": "02.05.01.00",
+	"version": "02.05.01.01",
 	"force_update": "0",
 	"description": "Unbound3D printer configurations",
 	"machine_model_list": [

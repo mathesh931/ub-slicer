@@ -32,7 +32,7 @@ UB Slicer 2.5 starts from an exact copy of OrcaSlicer **v2.5.0** (commit `40ecc6
 | `scripts/run_gettext.*` | translation files named `UBSlicer.mo` |
 | `resources/images/*` (Orca file names), `resources/web/image/logo.png` | Unbound artwork |
 | `resources/web/data/text.js`, `resources/web/guide/*/index.html` | "UB Slicer" in the welcome pages |
-| `resources/profiles/` | only `Unbound3D` (Hercules; bed picture with the Unbound logo; the Lynx 350/320 files are in git history for when they come back), `Custom` (kept but empty: no generic printers), `OrcaFilamentLibrary` |
+| `resources/profiles/` | only `Unbound3D` (Hercules, whose start code begins with `G90`/`M82` so a printer left in relative mode cannot send the purge line off the bed; bed picture with the Unbound logo; the Lynx 350/320 files are in git history for when they come back), `Custom` (kept but empty: no generic printers), `OrcaFilamentLibrary` |
 | `src/libslic3r/PresetBundle.cpp` | fallback printer Unbound3D Hercules, fallback filament eSUN PLA+ @Unbound3D |
 | `.github/` | UB Slicer's own build and profile checks |
 | `src/slic3r/GUI/GUI_App.cpp` (`config_wizard_startup`), `WebGuideDialog.cpp` | Unbound3D Hercules ticked on first start and used if setup is closed |
